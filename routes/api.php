@@ -9,6 +9,8 @@ Route::post('login', [AuthTokenController::class, 'store'])->name('api.login');
 
 Route::middleware('auth:sanctum')->prefix('courier')->name('api.courier.')->group(function () {
     Route::post('location', [CourierLocationController::class, 'store'])->name('location.store');
+    Route::get('orders/available', [CourierOrderController::class, 'available'])->name('orders.available');
+    Route::post('orders/{order}/accept', [CourierOrderController::class, 'accept'])->name('orders.accept');
     Route::get('orders/today', [CourierOrderController::class, 'today'])->name('orders.today');
     Route::patch('orders/{order}/status', [CourierOrderController::class, 'updateStatus'])->name('orders.update-status');
 });

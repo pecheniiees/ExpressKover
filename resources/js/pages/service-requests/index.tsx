@@ -66,6 +66,8 @@ type ServiceRequestProp = {
     client_name: string;
     client_phone: string;
     address: string;
+    area_square_meters: string | number | null;
+    total_amount: string | number | null;
     comment: string | null;
     status: string;
     created_at: string | null;
@@ -212,9 +214,9 @@ export default function ServiceRequestsIndex({ serviceRequests, tariffs, discoun
         name: request.client_name,
         phone: request.client_phone,
         address: request.address,
-        area: '—',
+        area: request.area_square_meters === null ? '—' : String(request.area_square_meters),
         rooms: '—',
-        price: '—',
+        price: request.total_amount === null ? '—' : `${Number(request.total_amount).toLocaleString('ru-RU')} ₸`,
         status: statusLabels[request.status] ?? request.status,
         statusValue: request.status,
         courier: 'Не назначен',
@@ -232,6 +234,7 @@ export default function ServiceRequestsIndex({ serviceRequests, tariffs, discoun
     const [discountType, setDiscountType] = useState('none');
     const [carpetCount, setCarpetCount] = useState(3);
     const [carpetArea, setCarpetArea] = useState('19');
+    const [tariffId, setTariffId] = useState(String(tariffs[0]?.id ?? ''));
     const [tariffRate, setTariffRate] = useState(String(tariffs[0]?.price_per_square_meter ?? '0'));
     const selectedRequest = rows.find((row) => row.id === selectedId) ?? null;
     const discountOptions = [
@@ -560,6 +563,9 @@ export default function ServiceRequestsIndex({ serviceRequests, tariffs, discoun
                                                 className="grid gap-4 lg:grid-cols-2"
                                             >
                                                 <input type="hidden" name="status" value="new" readOnly />
+                                                <input type="hidden" name="area_square_meters" value={carpetArea} readOnly />
+                                                <input type="hidden" name="tariff_id" value={tariffId} readOnly />
+                                                <input type="hidden" name="discount_id" value={discountType === 'none' ? '' : discountType} readOnly />
                                                 <div className="grid gap-4 lg:grid-cols-2">
                                                 <fieldset className="space-y-3 rounded-lg bg-[#f8faf9] p-3">
                                                     <legend className="px-1 text-xs font-bold text-slate-700">Информация о клиенте</legend>
@@ -620,13 +626,17 @@ export default function ServiceRequestsIndex({ serviceRequests, tariffs, discoun
                                                     </label>
                                                     <label className="block text-xs font-medium text-slate-600">Цена за м²
                                                         <select
-                                                            value={tariffRate}
-                                                            onChange={(event) => setTariffRate(event.target.value)}
+                                                            value={tariffId}
+                                                            onChange={(event) => {
+                                                                const selectedTariff = tariffs.find((tariff) => String(tariff.id) === event.target.value);
+                                                                setTariffId(event.target.value);
+                                                                setTariffRate(String(selectedTariff?.price_per_square_meter ?? '0'));
+                                                            }}
                                                             className="mt-1.5 w-full rounded-lg border border-[#dfe8e2] bg-white px-3 py-2 text-sm text-slate-700"
                                                         >
                                                             {tariffs.length === 0 && <option value="0">Тарифы не настроены</option>}
                                                             {tariffs.map((tariff) => (
-                                                                <option key={tariff.id} value={String(tariff.price_per_square_meter)}>
+                                                                <option key={tariff.id} value={String(tariff.id)}>
                                                                     {Number(tariff.price_per_square_meter).toLocaleString('ru-RU')} ₸ ({tariff.name})
                                                                 </option>
                                                             ))}

@@ -39,6 +39,8 @@ class ServiceRequestController extends Controller
                     'client_name' => $serviceRequest->client_name,
                     'client_phone' => $serviceRequest->client_phone,
                     'address' => $serviceRequest->address,
+                    'area_square_meters' => $serviceRequest->area_square_meters,
+                    'total_amount' => $serviceRequest->total_amount,
                     'comment' => $serviceRequest->comment,
                     'status' => $serviceRequest->status,
                     'created_at' => $serviceRequest->created_at?->format('d.m.Y H:i'),
@@ -53,6 +55,10 @@ class ServiceRequestController extends Controller
     public function store(StoreServiceRequestRequest $request, GeocodingProviderInterface $geocoder): RedirectResponse
     {
         $data = $request->serviceRequestData();
+        $tariff = Tariff::query()->findOrFail($data['tariff_id']);
+        $discount = $data['discount_id'] === null ? null : Discount::query()->findOrFail($data['discount_id']);
+        $billableArea = max($data['area_square_meters'], 7.5);
+        $data['total_amount'] = round($billableArea * (float) $tariff->price_per_square_meter * (1 - ((float) ($discount?->percentage ?? 0) / 100)), 2);
 
         if ($data['latitude'] === null && $data['longitude'] === null) {
             $coordinates = $geocoder->geocode($data['address']);

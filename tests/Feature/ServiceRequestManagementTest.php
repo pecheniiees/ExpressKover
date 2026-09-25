@@ -1,9 +1,18 @@
 <?php
 
 use App\Models\ServiceRequest;
+use App\Models\Tariff;
 use App\Models\User;
 use App\UserRole;
 use Illuminate\Support\Facades\Http;
+
+beforeEach(function () {
+    $this->tariff = Tariff::create([
+        'name' => 'Стандарт',
+        'price_per_square_meter' => 800,
+        'description' => 'Тестовый тариф',
+    ]);
+});
 
 test('guests are redirected from service requests', function () {
     $response = $this->get(route('service-requests.index'));
@@ -40,6 +49,8 @@ test('operators can create service requests', function () {
         'client_name' => 'Алия',
         'phone' => '700 088 06 89',
         'address' => 'Абая 10',
+        'area_square_meters' => 3,
+        'tariff_id' => $this->tariff->id,
         'comment' => 'Почистить ковёр',
         'status' => 'new',
     ]);
@@ -52,6 +63,7 @@ test('operators can create service requests', function () {
         'comment' => 'Почистить ковёр',
         'status' => 'new',
         'created_by' => $operator->id,
+        'total_amount' => 6000,
     ]);
 });
 
@@ -62,6 +74,8 @@ test('admins can create service requests', function () {
         'client_name' => 'Руслан',
         'phone' => '701 111 22 33',
         'address' => 'Сейфуллина 25',
+        'area_square_meters' => 19,
+        'tariff_id' => $this->tariff->id,
         'status' => 'in_progress',
     ]);
 
@@ -86,6 +100,7 @@ test('operators can update service request status', function () {
     $operator = User::factory()->operator()->create();
     $serviceRequest = ServiceRequest::factory()->create([
         'created_by' => $operator->id,
+        'total_amount' => 6000,
         'status' => 'new',
     ]);
 
@@ -142,6 +157,8 @@ test('creating a service request without coordinates auto-geocodes the address',
         'client_name' => 'Алия',
         'phone' => '700 088 06 89',
         'address' => 'Бейбитшилик 49/1',
+        'area_square_meters' => 10,
+        'tariff_id' => $this->tariff->id,
         'status' => 'new',
     ]);
 
@@ -162,6 +179,8 @@ test('geocoding failure does not prevent the service request from being created'
         'client_name' => 'Алия',
         'phone' => '700 088 06 89',
         'address' => 'Неизвестный адрес',
+        'area_square_meters' => 10,
+        'tariff_id' => $this->tariff->id,
         'status' => 'new',
     ]);
 

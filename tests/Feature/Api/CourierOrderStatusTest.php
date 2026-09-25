@@ -13,6 +13,73 @@ function createCourierWithLocation(float $latitude = 51.12852, float $longitude 
     ]);
 }
 
+test('available orders contain only unclaimed non-terminal requests', function () {
+    $courier = createCourierWithLocation();
+    $available = ServiceRequest::factory()->create([
+        'courier_id' => null,
+        'status' => 'new',
+    ]);
+    ServiceRequest::factory()->create([
+        'courier_id' => $courier->id,
+        'status' => 'accepted',
+    ]);
+    ServiceRequest::factory()->create([
+        'courier_id' => null,
+        'status' => 'cancelled',
+    ]);
+
+    Sanctum::actingAs($courier);
+
+    $this->getJson(route('api.courier.orders.available'))
+        ->assertOk()
+        ->assertJsonCount(1, 'data')
+        ->assertJsonPath('data.0.id', $available->id);
+});
+
+test('the first courier to accept an available order wins and the order moves into their today queue', function () {
+    $firstCourier = createCourierWithLocation();
+    $secondCourier = createCourierWithLocation(52.0, 72.0);
+    $order = ServiceRequest::factory()->create([
+        'courier_id' => null,
+        'status' => 'new',
+        'latitude' => 51.12,
+        'longitude' => 71.42,
+    ]);
+
+    Sanctum::actingAs($firstCourier);
+
+    $this->postJson(route('api.courier.orders.accept', $order))
+        ->assertOk()
+        ->assertJsonPath('data.id', $order->id)
+        ->assertJsonPath('data.status', 'accepted');
+
+    expect($order->fresh()->courier_id)->toBe($firstCourier->id);
+
+    Sanctum::actingAs($secondCourier);
+
+    $this->getJson(route('api.courier.orders.available'))
+        ->assertOk()
+        ->assertJsonCount(0, 'data');
+
+    $this->postJson(route('api.courier.orders.accept', $order))
+        ->assertStatus(409)
+        ->assertJsonPath('message', 'Заявка уже забрана другим курьером или недоступна.');
+
+    Sanctum::actingAs($firstCourier);
+
+    $this->getJson(route('api.courier.orders.today'))
+        ->assertOk()
+        ->assertJsonPath('data.0.id', $order->id);
+});
+
+test('a non-courier cannot access the shared available orders feed', function () {
+    $operator = User::factory()->operator()->create();
+
+    Sanctum::actingAs($operator);
+
+    $this->getJson(route('api.courier.orders.available'))->assertForbidden();
+});
+
 test('courier orders today returns the persisted queue with distance and current flags', function () {
     $courier = createCourierWithLocation();
 

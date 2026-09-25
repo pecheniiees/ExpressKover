@@ -9,12 +9,78 @@ use App\Http\Resources\CourierOrderResource;
 use App\Models\ServiceRequest;
 use App\Services\Delivery\DeliveryDistanceService;
 use App\Services\Delivery\DeliveryQueueService;
+use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
+use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Gate;
 
 class CourierOrderController extends Controller
 {
+    /**
+     * Return the shared feed of unclaimed, non-terminal orders.
+     */
+    public function available(Request $request, DeliveryDistanceService $distanceService): AnonymousResourceCollection
+    {
+        Gate::authorize('claim-service-request');
+
+        $courier = $request->user();
+        $orders = ServiceRequest::query()
+            ->whereNull('courier_id')
+            ->whereIn('status', ServiceRequest::AVAILABLE_COURIER_STATUSES)
+            ->latest()
+            ->get();
+
+        $orders->each(function (ServiceRequest $order) use ($courier, $distanceService): void {
+            $order->setAttribute('distance_meters', $distanceService->distanceBetweenCourierAndOrder($courier, $order));
+        });
+
+        return CourierOrderResource::collection($orders);
+    }
+
+    /**
+     * Atomically claim a free order for the authenticated courier.
+     *
+     * The row lock makes two concurrent couriers serialize on the same
+     * order. The second transaction observes courier_id after the first
+     * commits and receives 409 instead of claiming the same order.
+     */
+    public function accept(Request $request, ServiceRequest $order, DeliveryQueueService $queueService, DeliveryDistanceService $distanceService): CourierOrderResource|JsonResponse
+    {
+        Gate::authorize('claim-service-request');
+
+        $courier = $request->user();
+        $claimed = DB::transaction(function () use ($order, $courier): bool {
+            $lockedOrder = ServiceRequest::query()->lockForUpdate()->findOrFail($order->id);
+
+            if ($lockedOrder->courier_id !== null || ! in_array($lockedOrder->status, ServiceRequest::AVAILABLE_COURIER_STATUSES, true)) {
+                return false;
+            }
+
+            $lockedOrder->update([
+                'courier_id' => $courier->id,
+                'status' => 'accepted',
+                'queue_position' => null,
+            ]);
+
+            return true;
+        });
+
+        if (! $claimed) {
+            return response()->json([
+                'message' => 'Заявка уже забрана другим курьером или недоступна.',
+            ], 409);
+        }
+
+        $queue = $queueService->recalculateForCourier($courier);
+        event(new CourierDeliveryQueueUpdated($courier, $queue));
+
+        $order->refresh();
+        $order->setAttribute('distance_meters', $distanceService->distanceBetweenCourierAndOrder($courier, $order));
+
+        return new CourierOrderResource($order);
+    }
+
     /**
      * The authenticated courier's current delivery queue for today.
      *

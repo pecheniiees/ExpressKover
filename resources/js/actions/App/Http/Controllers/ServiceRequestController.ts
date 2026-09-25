@@ -1,7 +1,7 @@
 import { queryParams, type RouteQueryOptions, type RouteDefinition, type RouteFormDefinition, applyUrlDefaults } from './../../../../wayfinder'
 /**
 * @see \App\Http\Controllers\ServiceRequestController::index
- * @see app/Http/Controllers/ServiceRequestController.php:21
+ * @see app/Http/Controllers/ServiceRequestController.php:24
  * @route '/service-requests'
  */
 export const index = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -16,7 +16,7 @@ index.definition = {
 
 /**
 * @see \App\Http\Controllers\ServiceRequestController::index
- * @see app/Http/Controllers/ServiceRequestController.php:21
+ * @see app/Http/Controllers/ServiceRequestController.php:24
  * @route '/service-requests'
  */
 index.url = (options?: RouteQueryOptions) => {
@@ -25,7 +25,7 @@ index.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\ServiceRequestController::index
- * @see app/Http/Controllers/ServiceRequestController.php:21
+ * @see app/Http/Controllers/ServiceRequestController.php:24
  * @route '/service-requests'
  */
 index.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
@@ -34,7 +34,7 @@ index.get = (options?: RouteQueryOptions): RouteDefinition<'get'> => ({
 })
 /**
 * @see \App\Http\Controllers\ServiceRequestController::index
- * @see app/Http/Controllers/ServiceRequestController.php:21
+ * @see app/Http/Controllers/ServiceRequestController.php:24
  * @route '/service-requests'
  */
 index.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
@@ -44,7 +44,7 @@ index.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 
     /**
 * @see \App\Http\Controllers\ServiceRequestController::index
- * @see app/Http/Controllers/ServiceRequestController.php:21
+ * @see app/Http/Controllers/ServiceRequestController.php:24
  * @route '/service-requests'
  */
     const indexForm = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -54,7 +54,7 @@ index.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
 
             /**
 * @see \App\Http\Controllers\ServiceRequestController::index
- * @see app/Http/Controllers/ServiceRequestController.php:21
+ * @see app/Http/Controllers/ServiceRequestController.php:24
  * @route '/service-requests'
  */
         indexForm.get = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -63,7 +63,7 @@ index.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
         })
             /**
 * @see \App\Http\Controllers\ServiceRequestController::index
- * @see app/Http/Controllers/ServiceRequestController.php:21
+ * @see app/Http/Controllers/ServiceRequestController.php:24
  * @route '/service-requests'
  */
         indexForm.head = (options?: RouteQueryOptions): RouteFormDefinition<'get'> => ({
@@ -79,7 +79,7 @@ index.head = (options?: RouteQueryOptions): RouteDefinition<'head'> => ({
     index.form = indexForm
 /**
 * @see \App\Http\Controllers\ServiceRequestController::store
- * @see app/Http/Controllers/ServiceRequestController.php:50
+ * @see app/Http/Controllers/ServiceRequestController.php:53
  * @route '/service-requests'
  */
 export const store = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -94,7 +94,7 @@ store.definition = {
 
 /**
 * @see \App\Http\Controllers\ServiceRequestController::store
- * @see app/Http/Controllers/ServiceRequestController.php:50
+ * @see app/Http/Controllers/ServiceRequestController.php:53
  * @route '/service-requests'
  */
 store.url = (options?: RouteQueryOptions) => {
@@ -103,7 +103,7 @@ store.url = (options?: RouteQueryOptions) => {
 
 /**
 * @see \App\Http\Controllers\ServiceRequestController::store
- * @see app/Http/Controllers/ServiceRequestController.php:50
+ * @see app/Http/Controllers/ServiceRequestController.php:53
  * @route '/service-requests'
  */
 store.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
@@ -113,7 +113,7 @@ store.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
     /**
 * @see \App\Http\Controllers\ServiceRequestController::store
- * @see app/Http/Controllers/ServiceRequestController.php:50
+ * @see app/Http/Controllers/ServiceRequestController.php:53
  * @route '/service-requests'
  */
     const storeForm = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -123,7 +123,7 @@ store.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
 
             /**
 * @see \App\Http\Controllers\ServiceRequestController::store
- * @see app/Http/Controllers/ServiceRequestController.php:50
+ * @see app/Http/Controllers/ServiceRequestController.php:53
  * @route '/service-requests'
  */
         storeForm.post = (options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -134,7 +134,7 @@ store.post = (options?: RouteQueryOptions): RouteDefinition<'post'> => ({
     store.form = storeForm
 /**
 * @see \App\Http\Controllers\ServiceRequestController::update
- * @see app/Http/Controllers/ServiceRequestController.php:62
+ * @see app/Http/Controllers/ServiceRequestController.php:73
  * @route '/service-requests/{service_request}'
  */
 export const update = (args: { service_request: number | { id: number } } | [service_request: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
@@ -149,7 +149,7 @@ update.definition = {
 
 /**
 * @see \App\Http\Controllers\ServiceRequestController::update
- * @see app/Http/Controllers/ServiceRequestController.php:62
+ * @see app/Http/Controllers/ServiceRequestController.php:73
  * @route '/service-requests/{service_request}'
  */
 update.url = (args: { service_request: number | { id: number } } | [service_request: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -182,7 +182,7 @@ update.url = (args: { service_request: number | { id: number } } | [service_requ
 
 /**
 * @see \App\Http\Controllers\ServiceRequestController::update
- * @see app/Http/Controllers/ServiceRequestController.php:62
+ * @see app/Http/Controllers/ServiceRequestController.php:73
  * @route '/service-requests/{service_request}'
  */
 update.put = (args: { service_request: number | { id: number } } | [service_request: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'put'> => ({
@@ -191,7 +191,7 @@ update.put = (args: { service_request: number | { id: number } } | [service_requ
 })
 /**
 * @see \App\Http\Controllers\ServiceRequestController::update
- * @see app/Http/Controllers/ServiceRequestController.php:62
+ * @see app/Http/Controllers/ServiceRequestController.php:73
  * @route '/service-requests/{service_request}'
  */
 update.patch = (args: { service_request: number | { id: number } } | [service_request: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'patch'> => ({
@@ -201,7 +201,7 @@ update.patch = (args: { service_request: number | { id: number } } | [service_re
 
     /**
 * @see \App\Http\Controllers\ServiceRequestController::update
- * @see app/Http/Controllers/ServiceRequestController.php:62
+ * @see app/Http/Controllers/ServiceRequestController.php:73
  * @route '/service-requests/{service_request}'
  */
     const updateForm = (args: { service_request: number | { id: number } } | [service_request: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -216,7 +216,7 @@ update.patch = (args: { service_request: number | { id: number } } | [service_re
 
             /**
 * @see \App\Http\Controllers\ServiceRequestController::update
- * @see app/Http/Controllers/ServiceRequestController.php:62
+ * @see app/Http/Controllers/ServiceRequestController.php:73
  * @route '/service-requests/{service_request}'
  */
         updateForm.put = (args: { service_request: number | { id: number } } | [service_request: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -230,7 +230,7 @@ update.patch = (args: { service_request: number | { id: number } } | [service_re
         })
             /**
 * @see \App\Http\Controllers\ServiceRequestController::update
- * @see app/Http/Controllers/ServiceRequestController.php:62
+ * @see app/Http/Controllers/ServiceRequestController.php:73
  * @route '/service-requests/{service_request}'
  */
         updateForm.patch = (args: { service_request: number | { id: number } } | [service_request: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -246,7 +246,7 @@ update.patch = (args: { service_request: number | { id: number } } | [service_re
     update.form = updateForm
 /**
 * @see \App\Http\Controllers\ServiceRequestController::destroy
- * @see app/Http/Controllers/ServiceRequestController.php:74
+ * @see app/Http/Controllers/ServiceRequestController.php:127
  * @route '/service-requests/{service_request}'
  */
 export const destroy = (args: { service_request: number | { id: number } } | [service_request: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -261,7 +261,7 @@ destroy.definition = {
 
 /**
 * @see \App\Http\Controllers\ServiceRequestController::destroy
- * @see app/Http/Controllers/ServiceRequestController.php:74
+ * @see app/Http/Controllers/ServiceRequestController.php:127
  * @route '/service-requests/{service_request}'
  */
 destroy.url = (args: { service_request: number | { id: number } } | [service_request: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions) => {
@@ -294,7 +294,7 @@ destroy.url = (args: { service_request: number | { id: number } } | [service_req
 
 /**
 * @see \App\Http\Controllers\ServiceRequestController::destroy
- * @see app/Http/Controllers/ServiceRequestController.php:74
+ * @see app/Http/Controllers/ServiceRequestController.php:127
  * @route '/service-requests/{service_request}'
  */
 destroy.delete = (args: { service_request: number | { id: number } } | [service_request: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteDefinition<'delete'> => ({
@@ -304,7 +304,7 @@ destroy.delete = (args: { service_request: number | { id: number } } | [service_
 
     /**
 * @see \App\Http\Controllers\ServiceRequestController::destroy
- * @see app/Http/Controllers/ServiceRequestController.php:74
+ * @see app/Http/Controllers/ServiceRequestController.php:127
  * @route '/service-requests/{service_request}'
  */
     const destroyForm = (args: { service_request: number | { id: number } } | [service_request: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({
@@ -319,7 +319,7 @@ destroy.delete = (args: { service_request: number | { id: number } } | [service_
 
             /**
 * @see \App\Http\Controllers\ServiceRequestController::destroy
- * @see app/Http/Controllers/ServiceRequestController.php:74
+ * @see app/Http/Controllers/ServiceRequestController.php:127
  * @route '/service-requests/{service_request}'
  */
         destroyForm.delete = (args: { service_request: number | { id: number } } | [service_request: number | { id: number } ] | number | { id: number }, options?: RouteQueryOptions): RouteFormDefinition<'post'> => ({

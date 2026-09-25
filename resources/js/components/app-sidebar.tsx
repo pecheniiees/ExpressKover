@@ -22,7 +22,10 @@ import {
 import { dashboard } from '@/routes';
 import { index as serviceRequests } from '@/routes/service-requests';
 import { catalog as settingsCatalog } from '@/routes/settings';
+import { index as clients } from '@/routes/clients';
 import { index as users } from '@/routes/users';
+import { index as work } from '@/routes/work';
+import { index as finance } from '@/routes/finance';
 import type { NavItem } from '@/types';
 
 export function AppSidebar() {
@@ -44,17 +47,22 @@ export function AppSidebar() {
             : []),
         {
             title: 'В работе',
-            href: '#',
+            href: work(),
             icon: Truck,
         },
         {
-            title: 'Клиенты',
+            title: 'Сотрудники',
             href: users(),
             icon: Users,
         },
         {
+            title: 'Клиенты',
+            href: clients(),
+            icon: Users,
+        },
+        {
             title: 'Финансы',
-            href: '#',
+            href: finance(),
             icon: BarChart3,
         },
         {

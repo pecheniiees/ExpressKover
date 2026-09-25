@@ -5,6 +5,7 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Http\Requests\Admin\StoreUserRequest;
 use App\Http\Requests\Admin\UpdateUserRequest;
+use App\Models\ServiceRequest;
 use App\Models\User;
 use Illuminate\Http\RedirectResponse;
 use Inertia\Inertia;
@@ -28,6 +29,28 @@ class UserController extends Controller
                     'phone' => $user->phone,
                     'role' => $user->role->value,
                 ]),
+        ]);
+    }
+
+    /**
+     * Display clients collected from existing service requests.
+     */
+    public function clients(): Response
+    {
+        return Inertia::render('admin/clients/index', [
+            'clients' => ServiceRequest::query()
+                ->select(['client_name', 'client_phone', 'address'])
+                ->whereNotNull('client_phone')
+                ->orderBy('client_name')
+                ->get()
+                ->groupBy('client_phone')
+                ->map(fn ($requests): array => [
+                    'name' => $requests->first()->client_name,
+                    'phone' => $requests->first()->client_phone,
+                    'address' => $requests->first()->address,
+                    'orders_count' => $requests->count(),
+                ])
+                ->values(),
         ]);
     }
 

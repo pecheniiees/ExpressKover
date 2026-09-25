@@ -14,6 +14,10 @@ use Illuminate\Support\Carbon;
  * @property string $client_name
  * @property string $client_phone
  * @property string $address
+ * @property float|null $area_square_meters
+ * @property int|null $tariff_id
+ * @property int|null $discount_id
+ * @property float|null $total_amount
  * @property float|null $latitude
  * @property float|null $longitude
  * @property string|null $comment
@@ -25,7 +29,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $updated_at
  * @property-read float|null $distance_meters transient attribute set by DeliveryDistanceService for API responses; not persisted
  */
-#[Fillable(['client_name', 'client_phone', 'address', 'latitude', 'longitude', 'comment', 'status', 'courier_id', 'queue_position', 'created_by'])]
+#[Fillable(['client_name', 'client_phone', 'address', 'area_square_meters', 'tariff_id', 'discount_id', 'total_amount', 'latitude', 'longitude', 'comment', 'status', 'courier_id', 'queue_position', 'created_by'])]
 class ServiceRequest extends Model
 {
     /** @use HasFactory<ServiceRequestFactory> */
@@ -39,6 +43,13 @@ class ServiceRequest extends Model
     public const ACTIVE_COURIER_STATUSES = ['assigned', 'accepted', 'in_progress'];
 
     /**
+     * Statuses that can still be claimed from the shared courier feed.
+     *
+     * @var list<string>
+     */
+    public const AVAILABLE_COURIER_STATUSES = ['new', 'pending', 'ready', 'delivery'];
+
+    /**
      * Status values that remove an order from a courier's active queue.
      *
      * @var list<string>
@@ -50,6 +61,8 @@ class ServiceRequest extends Model
         return [
             'latitude' => 'decimal:7',
             'longitude' => 'decimal:7',
+            'area_square_meters' => 'decimal:2',
+            'total_amount' => 'decimal:2',
             'queue_position' => 'integer',
         ];
     }

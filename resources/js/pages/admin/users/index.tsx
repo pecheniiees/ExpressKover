@@ -187,8 +187,8 @@ export default function UsersIndex({ users }: { users: ManagedUser[] }) {
             <div className="space-y-6 p-4">
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
                     <Heading
-                        title="Пользователи"
-                        description="Создавайте, редактируйте и удаляйте пользователей"
+                        title="Сотрудники"
+                        description="Управляйте сотрудниками и их ролями"
                     />
                     <CreateUserDialog />
                 </div>
