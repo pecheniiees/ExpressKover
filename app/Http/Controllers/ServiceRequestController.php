@@ -25,7 +25,21 @@ class ServiceRequestController extends Controller
     {
         Gate::authorize('view-service-requests');
 
+        $statusCounts = ServiceRequest::query()
+            ->selectRaw('status, count(*) as total')
+            ->groupBy('status')
+            ->pluck('total', 'status');
+
         return Inertia::render('service-requests/index', [
+            'summary' => [
+                'all' => (int) $statusCounts->sum(),
+                'pickup' => (int) ($statusCounts['new'] ?? 0) + (int) ($statusCounts['pending'] ?? 0),
+                'washing' => (int) ($statusCounts['in_progress'] ?? 0),
+                'ready' => (int) ($statusCounts['ready'] ?? 0),
+                'delivery' => (int) ($statusCounts['delivery'] ?? 0),
+                'completed' => (int) ($statusCounts['completed'] ?? 0) + (int) ($statusCounts['delivered'] ?? 0),
+                'cancelled' => (int) ($statusCounts['cancelled'] ?? 0),
+            ],
             'canDelete' => request()->user()?->can('delete-service-requests') ?? false,
             'tariffs' => Tariff::query()->orderBy('name')->get(['id', 'name', 'price_per_square_meter']),
             'discounts' => Discount::query()->orderBy('name')->get(['id', 'name', 'percentage']),

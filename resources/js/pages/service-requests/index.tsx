@@ -16,15 +16,15 @@ import { useEffect, useRef, useState } from 'react';
 import ServiceRequestController from '@/actions/App/Http/Controllers/ServiceRequestController';
 import { index as serviceRequestsIndex } from '@/routes/service-requests';
 
-const summaryCards = [
-    { label: 'Все заявки', value: 45, accent: 'bg-white text-slate-700', icon: 'bg-[#e7f7f2] text-[#0d7c6a]' },
-    { label: 'Забор ковров', value: 15, accent: 'bg-white text-slate-700', icon: 'bg-[#e7f7f2] text-[#0d7c6a]' },
-    { label: 'В мойке', value: 8, accent: 'bg-white text-slate-700', icon: 'bg-[#edf4ff] text-[#2d5cf6]' },
-    { label: 'Готовы к доставке', value: 12, accent: 'bg-white text-slate-700', icon: 'bg-[#fff3d6] text-[#e7a100]' },
-    { label: 'Доставка', value: 10, accent: 'bg-white text-slate-700', icon: 'bg-[#fef1f0] text-[#df5b5b]' },
-    { label: 'Завершённые', value: 532, accent: 'bg-white text-slate-700', icon: 'bg-[#e8f5ea] text-[#1b7d4f]' },
-    { label: 'Отмена', value: 7, accent: 'bg-white text-slate-700', icon: 'bg-[#f0f1f2] text-slate-600' },
-];
+const summaryCardMeta = [
+    { key: 'all', label: 'Все заявки', icon: 'bg-[#e7f7f2] text-[#0d7c6a]' },
+    { key: 'pickup', label: 'Забор ковров', icon: 'bg-[#e7f7f2] text-[#0d7c6a]' },
+    { key: 'washing', label: 'В мойке', icon: 'bg-[#edf4ff] text-[#2d5cf6]' },
+    { key: 'ready', label: 'Готовы к доставке', icon: 'bg-[#fff3d6] text-[#e7a100]' },
+    { key: 'delivery', label: 'Доставка', icon: 'bg-[#fef1f0] text-[#df5b5b]' },
+    { key: 'completed', label: 'Завершённые', icon: 'bg-[#e8f5ea] text-[#1b7d4f]' },
+    { key: 'cancelled', label: 'Отмена', icon: 'bg-[#f0f1f2] text-slate-600' },
+] as const;
 
 const statusStyles: Record<string, string> = {
     Забор: 'bg-emerald-100 text-emerald-700',
@@ -56,6 +56,7 @@ type CatalogAroma = {
 
 type ServiceRequestsProps = {
     serviceRequests: ServiceRequestProp[];
+    summary: Record<(typeof summaryCardMeta)[number]['key'], number>;
     tariffs: CatalogTariff[];
     discounts: CatalogDiscount[];
     aromas: CatalogAroma[];
@@ -199,7 +200,7 @@ function DateFilter({
     );
 }
 
-export default function ServiceRequestsIndex({ serviceRequests, tariffs, discounts, aromas }: ServiceRequestsProps) {
+export default function ServiceRequestsIndex({ serviceRequests, summary, tariffs, discounts, aromas }: ServiceRequestsProps) {
     const statusLabels: Record<string, string> = {
         new: 'Забор',
         in_progress: 'В мойке',
@@ -295,7 +296,7 @@ export default function ServiceRequestsIndex({ serviceRequests, tariffs, discoun
                             </div>
 
                             <section className="grid gap-3 md:grid-cols-2 xl:grid-cols-7">
-                                {summaryCards.map((card, index) => (
+                                {summaryCardMeta.map((card, index) => (
                                     <div
                                         key={card.label}
                                         className={[
@@ -308,7 +309,7 @@ export default function ServiceRequestsIndex({ serviceRequests, tariffs, discoun
                                         </div>
                                         <div className="min-w-0 flex-1">
                                             <div className="text-[11px] font-medium text-slate-500">{card.label}</div>
-                                            <div className="mt-1 text-2xl font-bold tracking-[-0.06em] text-slate-800">{card.value}</div>
+                                            <div className="mt-1 text-2xl font-bold tracking-[-0.06em] text-slate-800">{summary[card.key]}</div>
                                         </div>
                                     </div>
                                 ))}
