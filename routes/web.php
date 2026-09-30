@@ -4,6 +4,7 @@ use App\Http\Controllers\Admin\UserController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\FinanceController;
 use App\Http\Controllers\ServiceRequestController;
+use App\Http\Controllers\WarehouseExpenseController;
 use App\Http\Controllers\WorkController;
 use Illuminate\Support\Facades\Route;
 
@@ -20,6 +21,15 @@ Route::middleware(['auth'])->group(function () {
     Route::get('order-history', [ServiceRequestController::class, 'history'])
         ->middleware('can:view-service-requests')
         ->name('order-history.index');
+    Route::get('warehouse', [WarehouseExpenseController::class, 'index'])
+        ->middleware('can:view-service-requests')
+        ->name('warehouse.expenses.index');
+    Route::post('warehouse/expenses', [WarehouseExpenseController::class, 'store'])
+        ->middleware('can:view-service-requests')
+        ->name('warehouse.expenses.store');
+    Route::delete('warehouse/expenses/{warehouseExpense}', [WarehouseExpenseController::class, 'destroy'])
+        ->middleware('can:view-service-requests')
+        ->name('warehouse.expenses.destroy');
 
     Route::resource('service-requests', ServiceRequestController::class)
         ->only(['index', 'store', 'update', 'destroy']);

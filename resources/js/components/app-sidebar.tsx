@@ -7,6 +7,7 @@ import {
     Settings,
     Truck,
     Users,
+    Warehouse,
 } from 'lucide-react';
 import { usePage } from '@inertiajs/react';
 import { NavMain } from '@/components/nav-main';
@@ -27,6 +28,7 @@ import { index as users } from '@/routes/users';
 import { index as work } from '@/routes/work';
 import { index as finance } from '@/routes/finance';
 import { index as orderHistory } from '@/routes/order-history';
+import warehouse from '@/routes/warehouse';
 import type { NavItem } from '@/types';
 
 export function AppSidebar() {
@@ -70,6 +72,11 @@ export function AppSidebar() {
             title: 'Финансы',
             href: finance(),
             icon: BarChart3,
+        },
+        {
+            title: 'Склад',
+            href: warehouse.expenses.index(),
+            icon: Warehouse,
         },
         {
             title: 'Настройки',
