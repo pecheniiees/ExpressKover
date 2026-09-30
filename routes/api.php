@@ -1,5 +1,6 @@
 <?php
 
+use App\Http\Controllers\Api\AdminOrderController;
 use App\Http\Controllers\Api\AuthTokenController;
 use App\Http\Controllers\Api\CourierLocationController;
 use App\Http\Controllers\Api\CourierOrderController;
@@ -13,4 +14,8 @@ Route::middleware('auth:sanctum')->prefix('courier')->name('api.courier.')->grou
     Route::post('orders/{order}/accept', [CourierOrderController::class, 'accept'])->name('orders.accept');
     Route::get('orders/today', [CourierOrderController::class, 'today'])->name('orders.today');
     Route::patch('orders/{order}/status', [CourierOrderController::class, 'updateStatus'])->name('orders.update-status');
+});
+
+Route::middleware(['auth:sanctum', 'can:manage-users'])->prefix('admin')->name('api.admin.')->group(function () {
+    Route::get('orders', [AdminOrderController::class, 'index'])->name('orders.index');
 });

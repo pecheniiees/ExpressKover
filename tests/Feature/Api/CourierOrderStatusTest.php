@@ -75,6 +75,46 @@ test('admin can use the mobile order workflow but is not treated as a courier fo
     ])->assertForbidden();
 });
 
+test('admin can see all orders and the assigned courier', function () {
+    $admin = User::factory()->admin()->create();
+    $courier = User::factory()->courier()->create([
+        'name' => 'Назначенный курьер',
+        'phone' => '+77001112233',
+    ]);
+    $assignedOrder = ServiceRequest::factory()->create([
+        'courier_id' => $courier->id,
+        'status' => 'accepted',
+    ]);
+    $unassignedOrder = ServiceRequest::factory()->create([
+        'courier_id' => null,
+        'status' => 'new',
+    ]);
+
+    Sanctum::actingAs($admin);
+
+    $this->getJson(route('api.admin.orders.index'))
+        ->assertOk()
+        ->assertJsonCount(2, 'data')
+        ->assertJsonFragment([
+            'id' => $assignedOrder->id,
+            'courier' => [
+                'id' => $courier->id,
+                'name' => 'Назначенный курьер',
+                'phone' => '+77001112233',
+            ],
+        ])
+        ->assertJsonFragment([
+            'id' => $unassignedOrder->id,
+            'courier' => null,
+        ]);
+});
+
+test('courier cannot access the admin all-orders endpoint', function () {
+    Sanctum::actingAs(User::factory()->courier()->create());
+
+    $this->getJson(route('api.admin.orders.index'))->assertForbidden();
+});
+
 test('the first courier to accept an available order wins and the order moves into their today queue', function () {
     $firstCourier = createCourierWithLocation();
     $secondCourier = createCourierWithLocation(52.0, 72.0);
