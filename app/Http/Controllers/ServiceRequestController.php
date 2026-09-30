@@ -11,6 +11,7 @@ use App\Models\Tariff;
 use App\Models\User;
 use App\Services\Delivery\DeliveryQueueService;
 use App\Services\Geocoding\GeocodingProviderInterface;
+use App\Services\Notifications\CourierPushNotificationService;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
@@ -114,7 +115,7 @@ class ServiceRequestController extends Controller
     /**
      * Store a newly created resource in storage.
      */
-    public function store(StoreServiceRequestRequest $request, GeocodingProviderInterface $geocoder): RedirectResponse
+    public function store(StoreServiceRequestRequest $request, GeocodingProviderInterface $geocoder, CourierPushNotificationService $pushNotifications): RedirectResponse
     {
         $data = $request->serviceRequestData();
         $tariff = Tariff::query()->findOrFail($data['tariff_id']);
@@ -130,19 +131,21 @@ class ServiceRequestController extends Controller
 
         $data['washing_started_at'] = $data['status'] === 'in_progress' ? now() : null;
 
-        ServiceRequest::create([
+        $serviceRequest = ServiceRequest::create([
             ...$data,
             'created_by' => $request->user()->id,
         ]);
+        $pushNotifications->notifyAvailableOrder($serviceRequest);
 
         Inertia::flash('toast', ['type' => 'success', 'message' => 'Заявка создана.']);
 
         return to_route('service-requests.index');
     }
 
-    public function update(UpdateServiceRequestRequest $request, ServiceRequest $serviceRequest, DeliveryQueueService $queueService, GeocodingProviderInterface $geocoder): RedirectResponse
+    public function update(UpdateServiceRequestRequest $request, ServiceRequest $serviceRequest, DeliveryQueueService $queueService, GeocodingProviderInterface $geocoder, CourierPushNotificationService $pushNotifications): RedirectResponse
     {
         $previousCourierId = $serviceRequest->courier_id;
+        $wasAvailable = $previousCourierId === null && in_array($serviceRequest->status, ServiceRequest::AVAILABLE_COURIER_STATUSES, true);
         $data = $request->serviceRequestData();
 
         $addressChanged = $data['address'] !== $serviceRequest->address;
@@ -158,7 +161,16 @@ class ServiceRequestController extends Controller
             ? ($serviceRequest->status === 'in_progress' && $serviceRequest->washing_started_at ? $serviceRequest->washing_started_at : now())
             : null;
 
+        if ($data['status'] === 'ready') {
+            $data['courier_id'] = null;
+            $data['queue_position'] = null;
+        }
+
         $serviceRequest->update($data);
+
+        if (! $wasAvailable && $serviceRequest->courier_id === null && in_array($serviceRequest->status, ServiceRequest::AVAILABLE_COURIER_STATUSES, true)) {
+            $pushNotifications->notifyAvailableOrder($serviceRequest);
+        }
 
         $this->recalculateQueuesAfterAssignmentChange($serviceRequest, $previousCourierId, $queueService);
 

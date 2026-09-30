@@ -76,6 +76,14 @@ class User extends Authenticatable implements PasskeyUser
     }
 
     /**
+     * Push notification tokens registered by this courier's devices.
+     */
+    public function courierPushTokens(): HasMany
+    {
+        return $this->hasMany(CourierPushToken::class);
+    }
+
+    /**
      * Service requests currently or previously assigned to this courier.
      */
     public function courierServiceRequests(): HasMany

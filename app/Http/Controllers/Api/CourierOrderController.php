@@ -7,8 +7,10 @@ use App\Http\Controllers\Controller;
 use App\Http\Requests\Api\UpdateServiceRequestStatusRequest;
 use App\Http\Resources\CourierOrderResource;
 use App\Models\ServiceRequest;
+use App\Models\User;
 use App\Services\Delivery\DeliveryDistanceService;
 use App\Services\Delivery\DeliveryQueueService;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Request;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
@@ -26,8 +28,15 @@ class CourierOrderController extends Controller
 
         $courier = $request->user();
         $orders = ServiceRequest::query()
-            ->whereNull('courier_id')
-            ->whereIn('status', ServiceRequest::AVAILABLE_COURIER_STATUSES)
+            ->where(function (Builder $query): void {
+                $query
+                    ->where('status', 'ready')
+                    ->orWhere(function (Builder $query): void {
+                        $query
+                            ->whereNull('courier_id')
+                            ->whereIn('status', ['new', 'pending', 'delivery']);
+                    });
+            })
             ->latest()
             ->get();
 
@@ -50,13 +59,17 @@ class CourierOrderController extends Controller
         Gate::authorize('claim-service-request');
 
         $courier = $request->user();
-        $claimed = DB::transaction(function () use ($order, $courier): bool {
+        $previousCourierId = null;
+        $claimed = DB::transaction(function () use ($order, $courier, &$previousCourierId): bool {
             $lockedOrder = ServiceRequest::query()->lockForUpdate()->findOrFail($order->id);
 
-            if ($lockedOrder->courier_id !== null || ! in_array($lockedOrder->status, ServiceRequest::AVAILABLE_COURIER_STATUSES, true)) {
+            $isReadyForDelivery = $lockedOrder->status === 'ready';
+            if ((! $isReadyForDelivery && $lockedOrder->courier_id !== null)
+                || ! in_array($lockedOrder->status, ServiceRequest::AVAILABLE_COURIER_STATUSES, true)) {
                 return false;
             }
 
+            $previousCourierId = $lockedOrder->courier_id;
             $nextStatus = in_array($lockedOrder->status, ['ready', 'delivery'], true)
                 ? 'delivery'
                 : 'accepted';
@@ -75,6 +88,14 @@ class CourierOrderController extends Controller
             return response()->json([
                 'message' => 'Заявка уже забрана другим курьером или недоступна.',
             ], 409);
+        }
+
+        if ($previousCourierId !== null && $previousCourierId !== $courier->id) {
+            $previousCourier = User::query()->find($previousCourierId);
+            if ($previousCourier) {
+                $previousQueue = $queueService->recalculateForCourier($previousCourier);
+                event(new CourierDeliveryQueueUpdated($previousCourier, $previousQueue));
+            }
         }
 
         $queue = $queueService->recalculateForCourier($courier);

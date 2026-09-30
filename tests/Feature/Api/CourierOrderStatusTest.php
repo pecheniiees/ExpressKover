@@ -15,7 +15,7 @@ function createCourierWithLocation(float $latitude = 51.12852, float $longitude 
     ]);
 }
 
-test('available orders contain only unclaimed non-terminal requests', function () {
+test('available orders include ready orders even if they have a previous courier', function () {
     $courier = createCourierWithLocation();
     $available = ServiceRequest::factory()->create([
         'courier_id' => null,
@@ -42,10 +42,42 @@ test('available orders contain only unclaimed non-terminal requests', function (
 
     $this->getJson(route('api.courier.orders.available'))
         ->assertOk()
-        ->assertJsonCount(2, 'data')
+        ->assertJsonCount(3, 'data')
         ->assertJsonFragment(['id' => $available->id, 'status' => 'new'])
         ->assertJsonFragment(['id' => $ready->id, 'status' => 'ready'])
-        ->assertJsonMissing(['id' => $assignedReady->id]);
+        ->assertJsonFragment(['id' => $assignedReady->id, 'status' => 'ready']);
+});
+
+test('claiming a ready order reassigns it and recalculates both courier queues', function () {
+    $previousCourier = createCourierWithLocation();
+    $newCourier = createCourierWithLocation(52.0, 72.0);
+    $readyOrder = ServiceRequest::factory()->create([
+        'courier_id' => $previousCourier->id,
+        'status' => 'ready',
+        'queue_position' => 0,
+        'latitude' => 51.12,
+        'longitude' => 71.42,
+    ]);
+    $previousNextOrder = ServiceRequest::factory()->create([
+        'courier_id' => $previousCourier->id,
+        'status' => 'accepted',
+        'queue_position' => 1,
+        'latitude' => 51.11,
+        'longitude' => 71.41,
+    ]);
+    Event::fake([CourierDeliveryQueueUpdated::class]);
+
+    Sanctum::actingAs($newCourier);
+
+    $this->postJson(route('api.courier.orders.accept', $readyOrder))
+        ->assertOk()
+        ->assertJsonPath('data.status', 'delivery')
+        ->assertJsonPath('data.is_current', true)
+        ->assertJsonPath('data.queue_position', 0);
+
+    expect($readyOrder->fresh()->courier_id)->toBe($newCourier->id)
+        ->and($previousNextOrder->fresh()->queue_position)->toBe(0);
+    Event::assertDispatched(CourierDeliveryQueueUpdated::class, 2);
 });
 
 test('admin can use the mobile order workflow but is not treated as a courier for gps', function () {

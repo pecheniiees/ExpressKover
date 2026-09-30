@@ -117,6 +117,42 @@ test('operators can update service request status', function () {
         ->courier_id->toBeNull();
 });
 
+test('marking a washing order ready releases its courier and recalculates the queue', function () {
+    $operator = User::factory()->operator()->create();
+    $courier = User::factory()->courier()->create([
+        'last_latitude' => 51.12852,
+        'last_longitude' => 71.43021,
+    ]);
+    $serviceRequest = ServiceRequest::factory()->create([
+        'courier_id' => $courier->id,
+        'queue_position' => 0,
+        'status' => 'in_progress',
+        'washing_started_at' => now(),
+    ]);
+    $nextOrder = ServiceRequest::factory()->create([
+        'courier_id' => $courier->id,
+        'queue_position' => 1,
+        'status' => 'accepted',
+        'latitude' => 51.12000,
+        'longitude' => 71.42500,
+    ]);
+
+    $response = $this->actingAs($operator)->patch(route('service-requests.update', $serviceRequest), [
+        'client_name' => $serviceRequest->client_name,
+        'phone' => $serviceRequest->client_phone,
+        'address' => $serviceRequest->address,
+        'status' => 'ready',
+    ]);
+
+    $response->assertRedirect(route('service-requests.index'));
+    expect($serviceRequest->fresh())
+        ->status->toBe('ready')
+        ->courier_id->toBeNull()
+        ->queue_position->toBeNull()
+        ->washing_started_at->toBeNull();
+    expect($nextOrder->fresh()->queue_position)->toBe(0);
+});
+
 test('assigning a courier through the update endpoint recalculates that couriers queue', function () {
     $operator = User::factory()->operator()->create();
     $courier = User::factory()->courier()->create([

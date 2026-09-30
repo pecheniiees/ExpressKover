@@ -7,6 +7,7 @@ use App\Http\Controllers\Controller;
 use App\Http\Resources\AdminOrderResource;
 use App\Models\ServiceRequest;
 use App\Services\Delivery\DeliveryQueueService;
+use App\Services\Notifications\CourierPushNotificationService;
 use Illuminate\Http\JsonResponse;
 use Illuminate\Http\Resources\Json\AnonymousResourceCollection;
 
@@ -22,7 +23,7 @@ class AdminOrderController extends Controller
         );
     }
 
-    public function markReady(ServiceRequest $order, DeliveryQueueService $queueService): AdminOrderResource|JsonResponse
+    public function markReady(ServiceRequest $order, DeliveryQueueService $queueService, CourierPushNotificationService $pushNotifications): AdminOrderResource|JsonResponse
     {
         if ($order->status !== 'in_progress') {
             return response()->json([
@@ -38,6 +39,7 @@ class AdminOrderController extends Controller
             'courier_id' => null,
             'queue_position' => null,
         ]);
+        $pushNotifications->notifyAvailableOrder($order);
 
         if ($previousCourier) {
             $queue = $queueService->recalculateForCourier($previousCourier);
