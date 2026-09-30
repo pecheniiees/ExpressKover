@@ -12,6 +12,7 @@ use App\Models\User;
 use App\Services\Delivery\DeliveryQueueService;
 use App\Services\Geocoding\GeocodingProviderInterface;
 use Illuminate\Http\RedirectResponse;
+use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Gate;
 use Inertia\Inertia;
 use Inertia\Response;
@@ -60,6 +61,53 @@ class ServiceRequestController extends Controller
                     'created_at' => $serviceRequest->created_at?->format('d.m.Y H:i'),
                     'creator' => $serviceRequest->creator?->name,
                 ]),
+        ]);
+    }
+
+    public function history(Request $request): Response
+    {
+        Gate::authorize('view-service-requests');
+
+        $search = $request->string('search')->trim()->toString();
+        $statusCounts = ServiceRequest::query()
+            ->whereIn('status', ServiceRequest::TERMINAL_STATUSES)
+            ->selectRaw('status, count(*) as total')
+            ->groupBy('status')
+            ->pluck('total', 'status');
+
+        $orders = ServiceRequest::query()
+            ->with('courier:id,name')
+            ->whereIn('status', ServiceRequest::TERMINAL_STATUSES)
+            ->when($search !== '', function ($query) use ($search): void {
+                $query->where(function ($query) use ($search): void {
+                    $query
+                        ->where('client_name', 'like', "%{$search}%")
+                        ->orWhere('client_phone', 'like', "%{$search}%")
+                        ->orWhere('address', 'like', "%{$search}%");
+                });
+            })
+            ->latest('updated_at')
+            ->paginate(15)
+            ->withQueryString()
+            ->through(fn (ServiceRequest $order): array => [
+                'id' => $order->id,
+                'client_name' => $order->client_name,
+                'client_phone' => $order->client_phone,
+                'address' => $order->address,
+                'status' => $order->status,
+                'courier' => $order->courier?->name,
+                'amount' => $order->total_amount !== null ? (float) $order->total_amount : null,
+                'updated_at' => $order->updated_at?->format('d.m.Y H:i'),
+            ]);
+
+        return Inertia::render('order-history/index', [
+            'orders' => $orders,
+            'summary' => [
+                'total' => (int) $statusCounts->sum(),
+                'completed' => (int) ($statusCounts['completed'] ?? 0) + (int) ($statusCounts['delivered'] ?? 0),
+                'cancelled' => (int) ($statusCounts['cancelled'] ?? 0),
+            ],
+            'filters' => ['search' => $search],
         ]);
     }
 

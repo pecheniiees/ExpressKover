@@ -17,6 +17,9 @@ Route::middleware(['auth'])->group(function () {
     Route::get('finance', [FinanceController::class, 'index'])
         ->middleware('can:view-service-requests')
         ->name('finance.index');
+    Route::get('order-history', [ServiceRequestController::class, 'history'])
+        ->middleware('can:view-service-requests')
+        ->name('order-history.index');
 
     Route::resource('service-requests', ServiceRequestController::class)
         ->only(['index', 'store', 'update', 'destroy']);
