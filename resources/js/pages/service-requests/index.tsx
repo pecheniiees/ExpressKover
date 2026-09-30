@@ -561,7 +561,7 @@ export default function ServiceRequestsIndex({ serviceRequests, summary, tariffs
                                                 {...ServiceRequestController.store.form()}
                                                 onSuccess={() => setIsCreateModalOpen(false)}
                                                 resetOnSuccess
-                                                className="grid gap-4 lg:grid-cols-2"
+                                                className="grid gap-4"
                                             >
                                                 <input type="hidden" name="status" value="new" readOnly />
                                                 <input type="hidden" name="area_square_meters" value={carpetArea} readOnly />
@@ -672,7 +672,7 @@ export default function ServiceRequestsIndex({ serviceRequests, summary, tariffs
 
                                             </div>
 
-                                            <div className="mt-5 flex justify-end gap-3 border-t border-[#edf1ee] pt-4">
+                                            <div className="col-span-full mt-1 flex justify-end gap-3 border-t border-[#edf1ee] pt-4">
                                                 <button type="button" onClick={() => setIsCreateModalOpen(false)} className="rounded-lg border border-[#dfe8e2] bg-white px-8 py-2.5 text-sm font-semibold text-slate-600">Отмена</button>
                                                 <button type="submit" className="rounded-lg bg-[#0d7c6a] px-8 py-2.5 text-sm font-semibold text-white shadow-sm hover:bg-[#0a6a5a]">Создать заказ</button>
                                             </div>
