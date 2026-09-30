@@ -36,6 +36,45 @@ test('available orders contain only unclaimed non-terminal requests', function (
         ->assertJsonPath('data.0.id', $available->id);
 });
 
+test('admin can use the mobile order workflow but is not treated as a courier for gps', function () {
+    $admin = User::factory()->admin()->create();
+    $order = ServiceRequest::factory()->create([
+        'courier_id' => null,
+        'status' => 'new',
+        'latitude' => 51.12800,
+        'longitude' => 71.43000,
+    ]);
+
+    Sanctum::actingAs($admin);
+
+    $this->getJson(route('api.courier.orders.available'))
+        ->assertOk()
+        ->assertJsonPath('data.0.id', $order->id);
+
+    $this->postJson(route('api.courier.orders.accept', $order))
+        ->assertOk()
+        ->assertJsonPath('data.status', 'accepted');
+
+    expect($order->fresh()->courier_id)->toBe($admin->id);
+
+    $this->getJson(route('api.courier.orders.today'))
+        ->assertOk()
+        ->assertJsonPath('data.0.id', $order->id);
+
+    $this->patchJson(route('api.courier.orders.update-status', $order), ['status' => 'in_progress'])
+        ->assertOk()
+        ->assertJsonPath('data.status', 'in_progress');
+
+    $this->patchJson(route('api.courier.orders.update-status', $order), ['status' => 'delivered'])
+        ->assertOk()
+        ->assertJsonPath('data.status', 'delivered');
+
+    $this->postJson(route('api.courier.location.store'), [
+        'latitude' => 51.12852,
+        'longitude' => 71.43021,
+    ])->assertForbidden();
+});
+
 test('the first courier to accept an available order wins and the order moves into their today queue', function () {
     $firstCourier = createCourierWithLocation();
     $secondCourier = createCourierWithLocation(52.0, 72.0);

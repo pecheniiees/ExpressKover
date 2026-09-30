@@ -60,6 +60,7 @@ class CourierOrderController extends Controller
             $lockedOrder->update([
                 'courier_id' => $courier->id,
                 'status' => 'accepted',
+                'washing_started_at' => null,
                 'queue_position' => null,
             ]);
 
@@ -112,7 +113,11 @@ class CourierOrderController extends Controller
     {
         $courier = $request->user();
 
-        $order->update(['status' => $request->validated('status')]);
+        $status = $request->validated('status');
+        $order->update([
+            'status' => $status,
+            'washing_started_at' => $status === 'in_progress' ? now() : null,
+        ]);
 
         $orders = $queueService->recalculateForCourier($courier);
 

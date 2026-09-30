@@ -16,7 +16,7 @@ trait PhoneValidationRules
 
         $digits = preg_replace('/\D+/', '', (string) $this->input('phone')) ?? '';
 
-        if (strlen($digits) === 11 && str_starts_with($digits, '7')) {
+        if (strlen($digits) === 11 && (str_starts_with($digits, '7') || str_starts_with($digits, '8'))) {
             $digits = substr($digits, 1);
         }
 

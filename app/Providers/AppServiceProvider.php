@@ -40,9 +40,9 @@ class AppServiceProvider extends ServiceProvider
         Gate::define('delete-service-requests', fn (User $user): bool => $user->isAdmin());
 
         Gate::define('record-courier-location', fn (User $user): bool => $user->isCourier());
-        Gate::define('view-own-courier-queue', fn (User $user): bool => $user->isCourier());
-        Gate::define('claim-service-request', fn (User $user): bool => $user->isCourier());
-        Gate::define('update-own-service-request-status', fn (User $user, ServiceRequest $serviceRequest): bool => $user->isCourier() && $user->id === $serviceRequest->courier_id);
+        Gate::define('view-own-courier-queue', fn (User $user): bool => $user->isCourier() || $user->isAdmin());
+        Gate::define('claim-service-request', fn (User $user): bool => $user->isCourier() || $user->isAdmin());
+        Gate::define('update-own-service-request-status', fn (User $user, ServiceRequest $serviceRequest): bool => ($user->isCourier() || $user->isAdmin()) && $user->id === $serviceRequest->courier_id);
     }
 
     /**

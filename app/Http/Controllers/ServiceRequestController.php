@@ -128,6 +128,8 @@ class ServiceRequestController extends Controller
             $data['longitude'] = $coordinates?->longitude;
         }
 
+        $data['washing_started_at'] = $data['status'] === 'in_progress' ? now() : null;
+
         ServiceRequest::create([
             ...$data,
             'created_by' => $request->user()->id,
@@ -151,6 +153,10 @@ class ServiceRequestController extends Controller
             $data['latitude'] = $coordinates?->latitude;
             $data['longitude'] = $coordinates?->longitude;
         }
+
+        $data['washing_started_at'] = $data['status'] === 'in_progress'
+            ? ($serviceRequest->status === 'in_progress' && $serviceRequest->washing_started_at ? $serviceRequest->washing_started_at : now())
+            : null;
 
         $serviceRequest->update($data);
 
