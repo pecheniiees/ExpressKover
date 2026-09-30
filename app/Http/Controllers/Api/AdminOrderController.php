@@ -22,7 +22,7 @@ class AdminOrderController extends Controller
         );
     }
 
-    public function markReady(ServiceRequest $order): AdminOrderResource|JsonResponse
+    public function markReady(ServiceRequest $order, DeliveryQueueService $queueService): AdminOrderResource|JsonResponse
     {
         if ($order->status !== 'in_progress') {
             return response()->json([
@@ -30,10 +30,19 @@ class AdminOrderController extends Controller
             ], 422);
         }
 
+        $previousCourier = $order->courier;
+
         $order->update([
             'status' => 'ready',
             'washing_started_at' => null,
+            'courier_id' => null,
+            'queue_position' => null,
         ]);
+
+        if ($previousCourier) {
+            $queue = $queueService->recalculateForCourier($previousCourier);
+            event(new CourierDeliveryQueueUpdated($previousCourier, $queue));
+        }
 
         return new AdminOrderResource($order->load('courier:id,name,phone'));
     }

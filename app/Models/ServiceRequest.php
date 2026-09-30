@@ -40,7 +40,7 @@ class ServiceRequest extends Model
      *
      * @var list<string>
      */
-    public const ACTIVE_COURIER_STATUSES = ['assigned', 'accepted', 'in_progress'];
+    public const ACTIVE_COURIER_STATUSES = ['assigned', 'accepted', 'in_progress', 'delivery'];
 
     /**
      * Statuses that can still be claimed from the shared courier feed.

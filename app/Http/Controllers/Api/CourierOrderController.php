@@ -57,9 +57,13 @@ class CourierOrderController extends Controller
                 return false;
             }
 
+            $nextStatus = in_array($lockedOrder->status, ['ready', 'delivery'], true)
+                ? 'delivery'
+                : 'accepted';
+
             $lockedOrder->update([
                 'courier_id' => $courier->id,
-                'status' => 'accepted',
+                'status' => $nextStatus,
                 'washing_started_at' => null,
                 'queue_position' => null,
             ]);
@@ -114,10 +118,21 @@ class CourierOrderController extends Controller
         $courier = $request->user();
 
         $status = $request->validated('status');
-        $order->update([
+        $attributes = [
             'status' => $status,
             'washing_started_at' => $status === 'in_progress' ? now() : null,
-        ]);
+        ];
+
+        if ($status === 'in_progress') {
+            $attributes['courier_id'] = null;
+            $attributes['queue_position'] = null;
+        }
+
+        if ($status === 'completed') {
+            $attributes['queue_position'] = null;
+        }
+
+        $order->update($attributes);
 
         $orders = $queueService->recalculateForCourier($courier);
 

@@ -1,7 +1,9 @@
 <?php
 
+use App\Events\CourierDeliveryQueueUpdated;
 use App\Models\ServiceRequest;
 use App\Models\User;
+use Illuminate\Support\Facades\Event;
 use Laravel\Sanctum\Sanctum;
 
 function createCourierWithLocation(float $latitude = 51.12852, float $longitude = 71.43021): User
@@ -19,6 +21,14 @@ test('available orders contain only unclaimed non-terminal requests', function (
         'courier_id' => null,
         'status' => 'new',
     ]);
+    $ready = ServiceRequest::factory()->create([
+        'courier_id' => null,
+        'status' => 'ready',
+    ]);
+    $assignedReady = ServiceRequest::factory()->create([
+        'courier_id' => $courier->id,
+        'status' => 'ready',
+    ]);
     ServiceRequest::factory()->create([
         'courier_id' => $courier->id,
         'status' => 'accepted',
@@ -32,8 +42,10 @@ test('available orders contain only unclaimed non-terminal requests', function (
 
     $this->getJson(route('api.courier.orders.available'))
         ->assertOk()
-        ->assertJsonCount(1, 'data')
-        ->assertJsonPath('data.0.id', $available->id);
+        ->assertJsonCount(2, 'data')
+        ->assertJsonFragment(['id' => $available->id, 'status' => 'new'])
+        ->assertJsonFragment(['id' => $ready->id, 'status' => 'ready'])
+        ->assertJsonMissing(['id' => $assignedReady->id]);
 });
 
 test('admin can use the mobile order workflow but is not treated as a courier for gps', function () {
@@ -65,9 +77,12 @@ test('admin can use the mobile order workflow but is not treated as a courier fo
         ->assertOk()
         ->assertJsonPath('data.status', 'in_progress');
 
-    $this->patchJson(route('api.courier.orders.update-status', $order), ['status' => 'delivered'])
+    $this->patchJson(route('api.admin.orders.ready', $order))
         ->assertOk()
-        ->assertJsonPath('data.status', 'delivered');
+        ->assertJsonPath('data.status', 'ready')
+        ->assertJsonPath('data.courier', null);
+
+    expect($order->fresh()->courier_id)->toBeNull();
 
     $this->postJson(route('api.courier.location.store'), [
         'latitude' => 51.12852,
@@ -117,22 +132,32 @@ test('courier cannot access the admin all-orders endpoint', function () {
 
 test('admin can mark an order from washing as ready for delivery', function () {
     $admin = User::factory()->admin()->create();
-    $courier = User::factory()->courier()->create();
+    $courier = createCourierWithLocation();
     $order = ServiceRequest::factory()->create([
         'courier_id' => $courier->id,
         'status' => 'in_progress',
         'washing_started_at' => now(),
+        'queue_position' => 0,
     ]);
+    $nextOrder = ServiceRequest::factory()->create([
+        'courier_id' => $courier->id,
+        'status' => 'accepted',
+        'queue_position' => 1,
+    ]);
+    Event::fake([CourierDeliveryQueueUpdated::class]);
 
     Sanctum::actingAs($admin);
 
     $this->patchJson(route('api.admin.orders.ready', $order))
         ->assertOk()
         ->assertJsonPath('data.status', 'ready')
-        ->assertJsonPath('data.courier.name', $courier->name);
+        ->assertJsonPath('data.courier', null);
 
     expect($order->fresh()->status)->toBe('ready')
+        ->and($order->fresh()->courier_id)->toBeNull()
         ->and($order->fresh()->washing_started_at)->toBeNull();
+    expect($nextOrder->fresh()->queue_position)->toBe(0);
+    Event::assertDispatched(CourierDeliveryQueueUpdated::class);
 });
 
 test('admin cannot mark an order outside washing as ready', function () {
@@ -160,9 +185,8 @@ test('courier cannot mark an order ready through the admin endpoint', function (
 
 test('admin can send a ready order back to washing and restore the courier queue', function () {
     $admin = User::factory()->admin()->create();
-    $courier = createCourierWithLocation();
     $order = ServiceRequest::factory()->create([
-        'courier_id' => $courier->id,
+        'courier_id' => null,
         'status' => 'ready',
         'queue_position' => null,
     ]);
@@ -172,11 +196,11 @@ test('admin can send a ready order back to washing and restore the courier queue
     $this->patchJson(route('api.admin.orders.rewash', $order))
         ->assertOk()
         ->assertJsonPath('data.status', 'in_progress')
-        ->assertJsonPath('data.courier.id', $courier->id);
+        ->assertJsonPath('data.courier', null);
 
     expect($order->fresh()->status)->toBe('in_progress')
         ->and($order->fresh()->washing_started_at)->not->toBeNull()
-        ->and($order->fresh()->queue_position)->toBe(0);
+        ->and($order->fresh()->courier_id)->toBeNull();
 });
 
 test('admin cannot send an order outside ready back to washing', function () {
@@ -280,26 +304,37 @@ test('courier orders today returns the persisted queue with distance and current
     expect($response->json('data.0.distance_meters'))->toBeInt();
 });
 
-test('courier can accept an assigned order and then start it, making it current', function () {
+test('courier sending an order to washing is unassigned and frees their queue', function () {
     $courier = createCourierWithLocation();
     $order = ServiceRequest::factory()->create([
         'courier_id' => $courier->id,
-        'status' => 'assigned',
+        'status' => 'accepted',
+        'queue_position' => 0,
         'latitude' => 51.12800,
         'longitude' => 71.43000,
     ]);
+    $nextOrder = ServiceRequest::factory()->create([
+        'courier_id' => $courier->id,
+        'status' => 'accepted',
+        'queue_position' => 1,
+        'latitude' => 51.11231,
+        'longitude' => 71.41125,
+    ]);
+    Event::fake([CourierDeliveryQueueUpdated::class]);
 
     Sanctum::actingAs($courier);
-
-    $this->patchJson(route('api.courier.orders.update-status', $order), ['status' => 'accepted'])
-        ->assertOk()
-        ->assertJsonPath('data.status', 'accepted');
 
     $this->patchJson(route('api.courier.orders.update-status', $order), ['status' => 'in_progress'])
         ->assertOk()
         ->assertJsonPath('data.status', 'in_progress')
-        ->assertJsonPath('data.is_current', true)
-        ->assertJsonPath('data.queue_position', 0);
+        ->assertJsonPath('data.is_current', false)
+        ->assertJsonPath('data.courier_id', null);
+
+    expect($order->fresh()->courier_id)->toBeNull()
+        ->and($order->fresh()->queue_position)->toBeNull()
+        ->and($order->fresh()->washing_started_at)->not->toBeNull()
+        ->and($nextOrder->fresh()->queue_position)->toBe(0);
+    Event::assertDispatched(CourierDeliveryQueueUpdated::class);
 });
 
 test('a courier cannot change the status of another couriers order', function () {
@@ -334,12 +369,32 @@ test('skipping a step in the delivery workflow is rejected', function () {
     expect($order->fresh()->status)->toBe('assigned');
 });
 
-test('delivering the current order automatically promotes the next queued order to first', function () {
+test('courier can claim a ready warehouse order for customer delivery', function () {
+    $courier = createCourierWithLocation();
+    $order = ServiceRequest::factory()->create([
+        'courier_id' => null,
+        'status' => 'ready',
+        'latitude' => 51.12800,
+        'longitude' => 71.43000,
+    ]);
+
+    Sanctum::actingAs($courier);
+
+    $this->postJson(route('api.courier.orders.accept', $order))
+        ->assertOk()
+        ->assertJsonPath('data.status', 'delivery')
+        ->assertJsonPath('data.is_current', true)
+        ->assertJsonPath('data.queue_position', 0);
+
+    expect($order->fresh()->courier_id)->toBe($courier->id);
+});
+
+test('courier completes warehouse delivery and the next queued order moves first', function () {
     $courier = createCourierWithLocation();
 
     $current = ServiceRequest::factory()->create([
         'courier_id' => $courier->id,
-        'status' => 'in_progress',
+        'status' => 'delivery',
         'queue_position' => 0,
         'latitude' => 51.12800,
         'longitude' => 71.43000,
@@ -354,9 +409,27 @@ test('delivering the current order automatically promotes the next queued order 
 
     Sanctum::actingAs($courier);
 
-    $this->patchJson(route('api.courier.orders.update-status', $current), ['status' => 'delivered'])
-        ->assertOk();
+    $this->patchJson(route('api.courier.orders.update-status', $current), ['status' => 'completed'])
+        ->assertOk()
+        ->assertJsonPath('data.status', 'completed');
 
-    expect($current->fresh()->status)->toBe('delivered')
+    expect($current->fresh()->status)->toBe('completed')
+        ->and($current->fresh()->queue_position)->toBeNull()
         ->and($next->fresh()->queue_position)->toBe(0);
+});
+
+test('courier cannot complete an order before it leaves washing', function () {
+    $courier = createCourierWithLocation();
+    $order = ServiceRequest::factory()->create([
+        'courier_id' => $courier->id,
+        'status' => 'in_progress',
+    ]);
+
+    Sanctum::actingAs($courier);
+
+    $this->patchJson(route('api.courier.orders.update-status', $order), ['status' => 'completed'])
+        ->assertUnprocessable()
+        ->assertJsonValidationErrors(['status']);
+
+    expect($order->fresh()->status)->toBe('in_progress');
 });

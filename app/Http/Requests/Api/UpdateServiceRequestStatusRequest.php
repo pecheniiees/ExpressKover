@@ -18,7 +18,8 @@ class UpdateServiceRequestStatusRequest extends FormRequest
     private const ALLOWED_TRANSITIONS = [
         'assigned' => ['accepted', 'cancelled'],
         'accepted' => ['in_progress', 'cancelled'],
-        'in_progress' => ['delivered', 'cancelled'],
+        'in_progress' => ['cancelled'],
+        'delivery' => ['completed', 'cancelled'],
     ];
 
     /**
@@ -40,7 +41,7 @@ class UpdateServiceRequestStatusRequest extends FormRequest
     public function rules(): array
     {
         return [
-            'status' => ['required', 'string', 'in:accepted,in_progress,delivered,cancelled'],
+            'status' => ['required', 'string', 'in:accepted,in_progress,delivered,completed,cancelled'],
         ];
     }
 

@@ -26,7 +26,9 @@ class CourierOrderResource extends JsonResource
             'status' => $this->resource->status,
             'queue_position' => $this->resource->queue_position,
             'distance_meters' => $this->resource->distance_meters !== null ? (int) round($this->resource->distance_meters) : null,
-            'is_current' => $this->resource->status === 'in_progress',
+            'is_current' => $this->resource->courier_id !== null
+                && ($this->resource->status === 'in_progress'
+                    || ($this->resource->status === 'delivery' && $this->resource->queue_position === 0)),
         ];
     }
 }
