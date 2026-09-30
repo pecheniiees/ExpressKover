@@ -19,4 +19,5 @@ Route::middleware('auth:sanctum')->prefix('courier')->name('api.courier.')->grou
 Route::middleware(['auth:sanctum', 'can:manage-users'])->prefix('admin')->name('api.admin.')->group(function () {
     Route::get('orders', [AdminOrderController::class, 'index'])->name('orders.index');
     Route::patch('orders/{order}/ready', [AdminOrderController::class, 'markReady'])->name('orders.ready');
+    Route::patch('orders/{order}/rewash', [AdminOrderController::class, 'sendToRewash'])->name('orders.rewash');
 });

@@ -158,6 +158,50 @@ test('courier cannot mark an order ready through the admin endpoint', function (
     expect($order->fresh()->status)->toBe('in_progress');
 });
 
+test('admin can send a ready order back to washing and restore the courier queue', function () {
+    $admin = User::factory()->admin()->create();
+    $courier = createCourierWithLocation();
+    $order = ServiceRequest::factory()->create([
+        'courier_id' => $courier->id,
+        'status' => 'ready',
+        'queue_position' => null,
+    ]);
+
+    Sanctum::actingAs($admin);
+
+    $this->patchJson(route('api.admin.orders.rewash', $order))
+        ->assertOk()
+        ->assertJsonPath('data.status', 'in_progress')
+        ->assertJsonPath('data.courier.id', $courier->id);
+
+    expect($order->fresh()->status)->toBe('in_progress')
+        ->and($order->fresh()->washing_started_at)->not->toBeNull()
+        ->and($order->fresh()->queue_position)->toBe(0);
+});
+
+test('admin cannot send an order outside ready back to washing', function () {
+    $admin = User::factory()->admin()->create();
+    $order = ServiceRequest::factory()->create(['status' => 'accepted']);
+
+    Sanctum::actingAs($admin);
+
+    $this->patchJson(route('api.admin.orders.rewash', $order))->assertUnprocessable();
+    expect($order->fresh()->status)->toBe('accepted');
+});
+
+test('courier cannot use the admin rewash endpoint', function () {
+    $courier = User::factory()->courier()->create();
+    $order = ServiceRequest::factory()->create([
+        'courier_id' => $courier->id,
+        'status' => 'ready',
+    ]);
+
+    Sanctum::actingAs($courier);
+
+    $this->patchJson(route('api.admin.orders.rewash', $order))->assertForbidden();
+    expect($order->fresh()->status)->toBe('ready');
+});
+
 test('the first courier to accept an available order wins and the order moves into their today queue', function () {
     $firstCourier = createCourierWithLocation();
     $secondCourier = createCourierWithLocation(52.0, 72.0);
