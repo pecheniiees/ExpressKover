@@ -41,9 +41,13 @@ const summaryCardMeta = [
 
 const statusStyles: Record<string, string> = {
     Забор: 'bg-emerald-100 text-emerald-700',
+    Ожидает: 'bg-slate-100 text-slate-700',
+    Назначен: 'bg-sky-100 text-sky-700',
+    Принят: 'bg-teal-100 text-teal-700',
     'В мойке': 'bg-indigo-100 text-indigo-700',
     'Готовы к доставке': 'bg-amber-100 text-amber-700',
     Доставка: 'bg-blue-100 text-blue-700',
+    Доставлен: 'bg-green-100 text-green-700',
     Завершённые: 'bg-green-100 text-green-700',
     Отмена: 'bg-red-100 text-red-700',
 };
@@ -242,9 +246,13 @@ export default function ServiceRequestsIndex({
 }: ServiceRequestsProps) {
     const statusLabels: Record<string, string> = {
         new: 'Забор',
+        pending: 'Ожидает',
+        assigned: 'Назначен',
+        accepted: 'Принят',
         in_progress: 'В мойке',
         ready: 'Готовы к доставке',
         delivery: 'Доставка',
+        delivered: 'Доставлен',
         completed: 'Завершённые',
         cancelled: 'Отмена',
     };
