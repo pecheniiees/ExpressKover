@@ -603,7 +603,11 @@ export default function ServiceRequestsIndex({
                                                             type="submit"
                                                             title="Перестирка"
                                                             aria-label={`Перестирка заявки ${row.id}`}
-                                                            className="flex size-8 items-center justify-center rounded-lg border border-emerald-100 bg-white text-emerald-600 transition hover:border-emerald-200 hover:bg-emerald-50"
+                                                            disabled={
+                                                                row.statusValue ===
+                                                                'cancelled'
+                                                            }
+                                                            className="flex size-8 items-center justify-center rounded-lg border border-emerald-100 bg-white text-emerald-600 transition hover:border-emerald-200 hover:bg-emerald-50 disabled:cursor-not-allowed disabled:border-slate-100 disabled:text-slate-300 disabled:hover:bg-white"
                                                         >
                                                             <RotateCcw className="size-4" />
                                                         </button>
@@ -829,7 +833,11 @@ export default function ServiceRequestsIndex({
                                             />
                                             <button
                                                 type="submit"
-                                                className="w-full rounded-xl border border-[#dfe8e2] bg-white px-3 py-2.5 text-sm font-semibold text-slate-700 transition hover:border-emerald-200 hover:bg-emerald-50"
+                                                disabled={
+                                                    selectedRequest.statusValue ===
+                                                    'cancelled'
+                                                }
+                                                className="w-full rounded-xl border border-[#dfe8e2] bg-white px-3 py-2.5 text-sm font-semibold text-slate-700 transition hover:border-emerald-200 hover:bg-emerald-50 disabled:cursor-not-allowed disabled:border-slate-100 disabled:text-slate-300 disabled:hover:bg-white"
                                             >
                                                 Перестирка
                                             </button>
