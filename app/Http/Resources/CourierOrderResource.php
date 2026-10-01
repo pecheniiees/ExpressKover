@@ -24,6 +24,10 @@ class CourierOrderResource extends JsonResource
             'latitude' => $this->resource->latitude !== null ? (float) $this->resource->latitude : null,
             'longitude' => $this->resource->longitude !== null ? (float) $this->resource->longitude : null,
             'status' => $this->resource->status,
+            'carpet_count' => $this->resource->carpet_count,
+            'area_square_meters' => $this->resource->area_square_meters !== null ? (float) $this->resource->area_square_meters : null,
+            'tariff_id' => $this->resource->tariff_id,
+            'total_amount' => $this->resource->total_amount !== null ? (float) $this->resource->total_amount : null,
             'queue_position' => $this->resource->queue_position,
             'distance_meters' => $this->resource->distance_meters !== null ? (int) round($this->resource->distance_meters) : null,
             'is_current' => $this->resource->courier_id !== null

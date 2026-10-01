@@ -1,7 +1,9 @@
 <?php
 
 use App\Events\CourierDeliveryQueueUpdated;
+use App\Models\Discount;
 use App\Models\ServiceRequest;
+use App\Models\Tariff;
 use App\Models\User;
 use Illuminate\Support\Facades\Event;
 use Laravel\Sanctum\Sanctum;
@@ -78,6 +80,80 @@ test('claiming a ready order reassigns it and recalculates both courier queues',
     expect($readyOrder->fresh()->courier_id)->toBe($newCourier->id)
         ->and($previousNextOrder->fresh()->queue_position)->toBe(0);
     Event::assertDispatched(CourierDeliveryQueueUpdated::class, 2);
+});
+
+test('courier can adjust carpet count, area and tariff while claiming an order', function () {
+    $courier = createCourierWithLocation();
+    $tariff = Tariff::query()->create([
+        'name' => 'Премиум',
+        'price_per_square_meter' => 1200,
+    ]);
+    $discount = Discount::query()->create([
+        'name' => 'Скидка',
+        'percentage' => 10,
+    ]);
+    $order = ServiceRequest::factory()->create([
+        'status' => 'new',
+        'courier_id' => null,
+        'area_square_meters' => 10,
+        'carpet_count' => 2,
+        'discount_id' => $discount->id,
+    ]);
+
+    Sanctum::actingAs($courier);
+
+    $this->postJson(route('api.courier.orders.accept', $order), [
+        'carpet_count' => 4,
+        'area_square_meters' => 12.5,
+        'tariff_id' => $tariff->id,
+    ])
+        ->assertOk()
+        ->assertJsonPath('data.carpet_count', 4)
+        ->assertJsonPath('data.area_square_meters', 12.5)
+        ->assertJsonPath('data.tariff_id', $tariff->id)
+        ->assertJsonPath('data.total_amount', 13500);
+
+    expect($order->fresh()->courier_id)->toBe($courier->id);
+});
+
+test('courier can load the tariff options for order acceptance', function () {
+    $courier = createCourierWithLocation();
+    $tariff = Tariff::query()->create([
+        'name' => 'Стандарт',
+        'price_per_square_meter' => 800,
+    ]);
+
+    Sanctum::actingAs($courier);
+
+    $this->getJson(route('api.courier.tariffs.index'))
+        ->assertOk()
+        ->assertJsonPath('data.0.id', $tariff->id)
+        ->assertJsonPath('data.0.name', 'Стандарт')
+        ->assertJsonPath('data.0.price_per_square_meter', 800);
+});
+
+test('available orders return the stored carpet count, area and tariff', function () {
+    $courier = createCourierWithLocation();
+    $tariff = Tariff::query()->create([
+        'name' => 'Стандарт',
+        'price_per_square_meter' => 800,
+    ]);
+    $order = ServiceRequest::factory()->create([
+        'status' => 'new',
+        'courier_id' => null,
+        'carpet_count' => 3,
+        'area_square_meters' => 16.75,
+        'tariff_id' => $tariff->id,
+    ]);
+
+    Sanctum::actingAs($courier);
+
+    $this->getJson(route('api.courier.orders.available'))
+        ->assertOk()
+        ->assertJsonPath('data.0.id', $order->id)
+        ->assertJsonPath('data.0.carpet_count', 3)
+        ->assertJsonPath('data.0.area_square_meters', 16.75)
+        ->assertJsonPath('data.0.tariff_id', $tariff->id);
 });
 
 test('admin can use the mobile order workflow but is not treated as a courier for gps', function () {

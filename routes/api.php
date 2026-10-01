@@ -14,6 +14,7 @@ Route::middleware('auth:sanctum')->prefix('courier')->name('api.courier.')->grou
     Route::post('location', [CourierLocationController::class, 'store'])->name('location.store');
     Route::post('push-token', [CourierPushTokenController::class, 'store'])->name('push-token.store');
     Route::delete('push-token', [CourierPushTokenController::class, 'destroy'])->name('push-token.destroy');
+    Route::get('tariffs', [CourierOrderController::class, 'tariffs'])->name('tariffs.index');
     Route::get('orders/available', [CourierOrderController::class, 'available'])->name('orders.available');
     Route::post('orders/{order}/accept', [CourierOrderController::class, 'accept'])->name('orders.accept');
     Route::get('orders/today', [CourierOrderController::class, 'today'])->name('orders.today');
