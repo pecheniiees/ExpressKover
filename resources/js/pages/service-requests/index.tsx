@@ -1,4 +1,4 @@
-import { Form, Head } from '@inertiajs/react';
+import { Form, Head, Link } from '@inertiajs/react';
 import {
     Bell,
     CalendarDays,
@@ -71,8 +71,16 @@ type CatalogAroma = {
     name: string;
 };
 
+type ServiceRequestsPaginator = {
+    data: ServiceRequestProp[];
+    current_page: number;
+    last_page: number;
+    total: number;
+    links: Array<{ url: string | null; label: string; active: boolean }>;
+};
+
 type ServiceRequestsProps = {
-    serviceRequests: ServiceRequestProp[];
+    serviceRequests: ServiceRequestsPaginator;
     summary: Record<(typeof summaryCardMeta)[number]['key'], number>;
     tariffs: CatalogTariff[];
     discounts: CatalogDiscount[];
@@ -259,7 +267,7 @@ export default function ServiceRequestsIndex({
     const tariffNameById = new Map(
         tariffs.map((tariff) => [tariff.id, tariff.name]),
     );
-    const rows = serviceRequests.map((request) => ({
+    const rows = serviceRequests.data.map((request) => ({
         id: String(request.id),
         requestId: request.id,
         tariffCode: `${(request.tariff_id !== null ? tariffNameById.get(request.tariff_id) : undefined) ?? ''}-${String(request.id).padStart(4, '0')}`,
@@ -660,6 +668,40 @@ export default function ServiceRequestsIndex({
                             </tbody>
                         </table>
                     </div>
+
+                    {serviceRequests.last_page > 1 && (
+                        <div className="flex flex-wrap items-center justify-between gap-3 border-t border-[#edf1ee] px-4 py-4">
+                            <p className="text-xs text-slate-500">
+                                Всего заявок: {serviceRequests.total}
+                            </p>
+                            <nav
+                                className="flex items-center gap-1"
+                                aria-label="Пагинация заявок"
+                            >
+                                {serviceRequests.links.map((link, index) =>
+                                    link.url ? (
+                                        <Link
+                                            key={`${link.label}-${index}`}
+                                            href={link.url}
+                                            preserveScroll
+                                            className={`rounded-lg px-3 py-1.5 text-xs font-semibold transition ${link.active ? 'bg-emerald-600 text-white' : 'text-slate-600 hover:bg-slate-100'}`}
+                                            dangerouslySetInnerHTML={{
+                                                __html: link.label,
+                                            }}
+                                        />
+                                    ) : (
+                                        <span
+                                            key={`${link.label}-${index}`}
+                                            className="px-3 py-1.5 text-xs text-slate-300"
+                                            dangerouslySetInnerHTML={{
+                                                __html: link.label,
+                                            }}
+                                        />
+                                    ),
+                                )}
+                            </nav>
+                        </div>
+                    )}
 
                     {selectedRequest && (
                         <div

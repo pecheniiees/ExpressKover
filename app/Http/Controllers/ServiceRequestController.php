@@ -49,8 +49,9 @@ class ServiceRequestController extends Controller
             'serviceRequests' => ServiceRequest::query()
                 ->with('creator:id,name')
                 ->latest()
-                ->get()
-                ->map(fn (ServiceRequest $serviceRequest): array => [
+                ->paginate(20)
+                ->withQueryString()
+                ->through(fn (ServiceRequest $serviceRequest): array => [
                     'id' => $serviceRequest->id,
                     'tariff_id' => $serviceRequest->tariff_id,
                     'client_name' => $serviceRequest->client_name,
