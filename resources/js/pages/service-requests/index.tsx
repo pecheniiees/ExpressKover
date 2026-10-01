@@ -923,7 +923,7 @@ export default function ServiceRequestsIndex({
                                                         <input
                                                             name="client_name"
                                                             className="mt-1.5 w-full rounded-lg border border-[#dfe8e2] bg-white px-3 py-2 text-sm text-slate-700"
-                                                            defaultValue="Алия"
+                                                            placeholder="Алия"
                                                             required
                                                         />
                                                     </label>
@@ -935,7 +935,7 @@ export default function ServiceRequestsIndex({
                                                         <input
                                                             name="phone"
                                                             className="mt-1.5 w-full rounded-lg border border-[#dfe8e2] bg-white px-3 py-2 text-sm text-slate-700"
-                                                            defaultValue="+77771234567"
+                                                            placeholder="+77771234567"
                                                             required
                                                         />
                                                     </label>
@@ -948,7 +948,7 @@ export default function ServiceRequestsIndex({
                                                             <input
                                                                 name="address"
                                                                 className="w-full rounded-lg border border-[#dfe8e2] bg-white px-3 py-2 pr-9 text-sm text-slate-700"
-                                                                defaultValue="Бейбитшилик 49/1, 3 этаж, кв. 30"
+                                                                placeholder="Бейбитшилик 49/1, 3 этаж, кв. 30"
                                                                 required
                                                             />
                                                             <MapPin className="absolute top-2.5 right-2.5 size-4 text-slate-500" />
@@ -965,7 +965,7 @@ export default function ServiceRequestsIndex({
                                                         подъезд, домофон)
                                                         <input
                                                             className="mt-1.5 w-full rounded-lg border border-[#dfe8e2] bg-white px-3 py-2 text-sm text-slate-700"
-                                                            defaultValue="3 этаж, код 1234"
+                                                            placeholder="3 этаж, код 1234"
                                                         />
                                                     </label>
                                                     <label className="block text-xs font-medium text-slate-600">
@@ -973,7 +973,7 @@ export default function ServiceRequestsIndex({
                                                         <input
                                                             name="comment"
                                                             className="mt-1.5 w-full rounded-lg border border-[#dfe8e2] bg-white px-3 py-2 text-sm text-slate-700"
-                                                            defaultValue="После 18:00"
+                                                            placeholder="После 18:00"
                                                         />
                                                     </label>
                                                     <label className="flex items-center gap-2 text-xs text-slate-600">
@@ -1176,7 +1176,6 @@ export default function ServiceRequestsIndex({
                                                         <input
                                                             type="date"
                                                             className="mt-1.5 w-full rounded-lg border border-[#dfe8e2] bg-white px-3 py-2 text-sm text-slate-700"
-                                                            defaultValue="2026-09-19"
                                                         />
                                                     </label>
                                                     <label className="block text-xs font-medium text-slate-600">
