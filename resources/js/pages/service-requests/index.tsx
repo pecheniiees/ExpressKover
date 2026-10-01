@@ -255,6 +255,10 @@ export default function ServiceRequestsIndex({
         id: String(request.id),
         requestId: request.id,
         tariffCode: `${(request.tariff_id !== null ? tariffNameById.get(request.tariff_id) : undefined) ?? ''}${request.id}`,
+        tariffName:
+            (request.tariff_id !== null
+                ? tariffNameById.get(request.tariff_id)
+                : undefined) ?? '—',
         name: request.client_name,
         phone: request.client_phone,
         address: request.address,
@@ -282,6 +286,7 @@ export default function ServiceRequestsIndex({
     const [statusFilter, setStatusFilter] = useState('all');
     const [courierFilter, setCourierFilter] = useState('all');
     const [aromaFilter, setAromaFilter] = useState('all');
+    const [tariffFilter, setTariffFilter] = useState('all');
     const [discountType, setDiscountType] = useState('none');
     const [carpetCount, setCarpetCount] = useState(3);
     const [carpetArea, setCarpetArea] = useState('19');
@@ -329,7 +334,8 @@ export default function ServiceRequestsIndex({
             (dateFilter === 'all' || row.date === dateFilter) &&
             (statusFilter === 'all' || row.status === statusFilter) &&
             (courierFilter === 'all' || row.courier === courierFilter) &&
-            (aromaFilter === 'all' || row.aroma === aromaFilter),
+            (aromaFilter === 'all' || row.aroma === aromaFilter) &&
+            (tariffFilter === 'all' || row.tariffName === tariffFilter),
     );
 
     const resetFilters = () => {
@@ -337,6 +343,7 @@ export default function ServiceRequestsIndex({
         setStatusFilter('all');
         setCourierFilter('all');
         setAromaFilter('all');
+        setTariffFilter('all');
     };
 
     return (
@@ -420,6 +427,17 @@ export default function ServiceRequestsIndex({
                             ...aromas.map((aroma) => ({
                                 value: aroma.name,
                                 label: aroma.name,
+                            })),
+                        ]}
+                    />
+                    <FilterSelect
+                        value={tariffFilter}
+                        onChange={setTariffFilter}
+                        options={[
+                            { value: 'all', label: 'Все тарифы' },
+                            ...tariffs.map((tariff) => ({
+                                value: tariff.name,
+                                label: tariff.name,
                             })),
                         ]}
                     />
