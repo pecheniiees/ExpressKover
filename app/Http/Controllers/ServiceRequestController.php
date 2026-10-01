@@ -52,6 +52,7 @@ class ServiceRequestController extends Controller
                 ->get()
                 ->map(fn (ServiceRequest $serviceRequest): array => [
                     'id' => $serviceRequest->id,
+                    'tariff_id' => $serviceRequest->tariff_id,
                     'client_name' => $serviceRequest->client_name,
                     'client_phone' => $serviceRequest->client_phone,
                     'address' => $serviceRequest->address,

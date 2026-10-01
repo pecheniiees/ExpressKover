@@ -77,6 +77,7 @@ type ServiceRequestsProps = {
 
 type ServiceRequestProp = {
     id: number;
+    tariff_id: number | null;
     client_name: string;
     client_phone: string;
     address: string;
@@ -246,9 +247,13 @@ export default function ServiceRequestsIndex({
         completed: 'Завершённые',
         cancelled: 'Отмена',
     };
+    const tariffNameById = new Map(
+        tariffs.map((tariff) => [tariff.id, tariff.name]),
+    );
     const rows = serviceRequests.map((request) => ({
         id: String(request.id),
         requestId: request.id,
+        tariffCode: `${(request.tariff_id !== null ? tariffNameById.get(request.tariff_id) : undefined) ?? ''}${request.id}`,
         name: request.client_name,
         phone: request.client_phone,
         address: request.address,
@@ -480,11 +485,11 @@ export default function ServiceRequestsIndex({
                                             }
                                         >
                                             <td className="px-4 py-3">
+                                                <div className="text-[11px] font-semibold text-emerald-700">
+                                                    {row.tariffCode}
+                                                </div>
                                                 <div className="font-semibold text-slate-800">
                                                     {row.name}
-                                                </div>
-                                                <div className="text-[11px] text-slate-500">
-                                                    {row.id}
                                                 </div>
                                             </td>
                                             <td className="px-4 py-3 text-slate-600">
