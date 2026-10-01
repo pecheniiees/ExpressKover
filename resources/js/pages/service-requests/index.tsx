@@ -456,7 +456,7 @@ export default function ServiceRequestsIndex({
                             <thead className="bg-[#f4f7f5] text-left text-slate-500">
                                 <tr>
                                     <th className="px-4 py-3 font-medium">
-                                        Код
+                                        Номер заказа
                                     </th>
                                     <th className="px-4 py-3 font-medium">
                                         Клиент
