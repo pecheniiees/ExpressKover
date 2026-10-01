@@ -90,7 +90,7 @@ class ServiceRequestController extends Controller
                 });
             })
             ->latest('updated_at')
-            ->paginate(15)
+            ->paginate(20)
             ->withQueryString()
             ->through(fn (ServiceRequest $order): array => [
                 'id' => $order->id,
