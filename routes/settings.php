@@ -24,7 +24,6 @@ Route::middleware(['auth'])->group(function () {
         ->middleware('throttle:6,1')
         ->name('user-password.update');
 
-    Route::inertia('settings/appearance', 'settings/appearance')->name('appearance.edit');
     Route::get('settings/catalog', [CatalogController::class, 'index'])->name('settings.catalog');
     Route::post('settings/catalog/tariffs', [CatalogController::class, 'storeTariff'])->name('settings.tariffs.store');
     Route::patch('settings/catalog/tariffs/{tariff}', [CatalogController::class, 'updateTariff'])->name('settings.tariffs.update');
