@@ -30,6 +30,7 @@ class StoreServiceRequestRequest extends FormRequest
             'phone' => ['required', 'string', 'regex:/^\+7\d{10}$/'],
             'address' => ['required', 'string', 'max:255'],
             'area_square_meters' => ['required', 'numeric', 'min:0.01'],
+            'carpet_count' => ['required', 'integer', 'min:1'],
             'tariff_id' => ['required', 'integer', 'exists:tariffs,id'],
             'discount_id' => ['nullable', 'integer', 'exists:discounts,id'],
             'latitude' => ['nullable', 'numeric', 'between:-90,90'],
@@ -40,7 +41,7 @@ class StoreServiceRequestRequest extends FormRequest
     }
 
     /**
-     * @return array{client_name: string, client_phone: string, address: string, area_square_meters: float, tariff_id: int, discount_id?: int|null, latitude?: float|null, longitude?: float|null, comment?: string|null, status: string}
+     * @return array{client_name: string, client_phone: string, address: string, area_square_meters: float, carpet_count: int, tariff_id: int, discount_id?: int|null, latitude?: float|null, longitude?: float|null, comment?: string|null, status: string}
      */
     public function serviceRequestData(): array
     {
@@ -51,6 +52,7 @@ class StoreServiceRequestRequest extends FormRequest
             'client_phone' => $validated['phone'],
             'address' => $validated['address'],
             'area_square_meters' => (float) $validated['area_square_meters'],
+            'carpet_count' => (int) $validated['carpet_count'],
             'tariff_id' => (int) $validated['tariff_id'],
             'discount_id' => isset($validated['discount_id']) ? (int) $validated['discount_id'] : null,
             'latitude' => $validated['latitude'] ?? null,

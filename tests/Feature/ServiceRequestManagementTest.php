@@ -50,6 +50,7 @@ test('operators can create service requests', function () {
         'phone' => '700 088 06 89',
         'address' => 'Абая 10',
         'area_square_meters' => 3,
+        'carpet_count' => 2,
         'tariff_id' => $this->tariff->id,
         'comment' => 'Почистить ковёр',
         'status' => 'new',
@@ -75,6 +76,7 @@ test('admins can create service requests', function () {
         'phone' => '701 111 22 33',
         'address' => 'Сейфуллина 25',
         'area_square_meters' => 19,
+        'carpet_count' => 4,
         'tariff_id' => $this->tariff->id,
         'status' => 'in_progress',
     ]);
@@ -93,7 +95,7 @@ test('service request creation validates required fields', function () {
 
     $response = $this->actingAs($operator)->post(route('service-requests.store'), []);
 
-    $response->assertSessionHasErrors(['client_name', 'phone', 'address', 'status']);
+    $response->assertSessionHasErrors(['client_name', 'phone', 'address', 'status', 'carpet_count']);
 });
 
 test('operators can update service request status', function () {
@@ -194,6 +196,7 @@ test('creating a service request without coordinates auto-geocodes the address',
         'phone' => '700 088 06 89',
         'address' => 'Бейбитшилик 49/1',
         'area_square_meters' => 10,
+        'carpet_count' => 1,
         'tariff_id' => $this->tariff->id,
         'status' => 'new',
     ]);
@@ -216,6 +219,7 @@ test('geocoding failure does not prevent the service request from being created'
         'phone' => '700 088 06 89',
         'address' => 'Неизвестный адрес',
         'area_square_meters' => 10,
+        'carpet_count' => 1,
         'tariff_id' => $this->tariff->id,
         'status' => 'new',
     ]);

@@ -82,6 +82,7 @@ type ServiceRequestProp = {
     client_phone: string;
     address: string;
     area_square_meters: string | number | null;
+    carpet_count: number | null;
     total_amount: string | number | null;
     comment: string | null;
     status: string;
@@ -261,7 +262,8 @@ export default function ServiceRequestsIndex({
             request.area_square_meters === null
                 ? '—'
                 : String(request.area_square_meters),
-        rooms: '—',
+        rooms:
+            request.carpet_count === null ? '—' : String(request.carpet_count),
         price:
             request.total_amount === null
                 ? '—'
@@ -694,8 +696,8 @@ export default function ServiceRequestsIndex({
                                         <div className="flex items-center gap-3 rounded-xl border border-[#e7ece8] bg-[#fafcfb] p-3">
                                             <MessageSquareText className="size-4 text-[#0d7c6a]" />
                                             <span>
-                                                Постельное бельё, ковры,{' '}
-                                                {selectedRequest.rooms} комнаты
+                                                Количество ковров:{' '}
+                                                {selectedRequest.rooms}
                                             </span>
                                         </div>
                                     </div>
@@ -855,6 +857,12 @@ export default function ServiceRequestsIndex({
                                                 type="hidden"
                                                 name="area_square_meters"
                                                 value={carpetArea}
+                                                readOnly
+                                            />
+                                            <input
+                                                type="hidden"
+                                                name="carpet_count"
+                                                value={carpetCount}
                                                 readOnly
                                             />
                                             <input

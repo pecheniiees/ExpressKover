@@ -57,6 +57,7 @@ class ServiceRequestController extends Controller
                     'client_phone' => $serviceRequest->client_phone,
                     'address' => $serviceRequest->address,
                     'area_square_meters' => $serviceRequest->area_square_meters,
+                    'carpet_count' => $serviceRequest->carpet_count,
                     'total_amount' => $serviceRequest->total_amount,
                     'comment' => $serviceRequest->comment,
                     'status' => $serviceRequest->status,

@@ -22,6 +22,7 @@ class ServiceRequestFactory extends Factory
             'client_name' => fake()->name(),
             'client_phone' => fake()->unique()->numerify('+7##########'),
             'address' => fake()->address(),
+            'carpet_count' => fake()->numberBetween(1, 5),
             'comment' => fake()->sentence(),
             'status' => 'new',
             'created_by' => User::factory(),

@@ -15,6 +15,7 @@ use Illuminate\Support\Carbon;
  * @property string $client_phone
  * @property string $address
  * @property float|null $area_square_meters
+ * @property int|null $carpet_count
  * @property int|null $tariff_id
  * @property int|null $discount_id
  * @property float|null $total_amount
@@ -29,7 +30,7 @@ use Illuminate\Support\Carbon;
  * @property Carbon|null $updated_at
  * @property-read float|null $distance_meters transient attribute set by DeliveryDistanceService for API responses; not persisted
  */
-#[Fillable(['client_name', 'client_phone', 'address', 'area_square_meters', 'tariff_id', 'discount_id', 'total_amount', 'latitude', 'longitude', 'comment', 'status', 'washing_started_at', 'courier_id', 'queue_position', 'created_by'])]
+#[Fillable(['client_name', 'client_phone', 'address', 'area_square_meters', 'carpet_count', 'tariff_id', 'discount_id', 'total_amount', 'latitude', 'longitude', 'comment', 'status', 'washing_started_at', 'courier_id', 'queue_position', 'created_by'])]
 class ServiceRequest extends Model
 {
     /** @use HasFactory<ServiceRequestFactory> */
@@ -62,6 +63,7 @@ class ServiceRequest extends Model
             'latitude' => 'decimal:7',
             'longitude' => 'decimal:7',
             'area_square_meters' => 'decimal:2',
+            'carpet_count' => 'integer',
             'total_amount' => 'decimal:2',
             'queue_position' => 'integer',
             'washing_started_at' => 'datetime',
