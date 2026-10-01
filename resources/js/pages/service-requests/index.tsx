@@ -254,7 +254,7 @@ export default function ServiceRequestsIndex({
     const rows = serviceRequests.map((request) => ({
         id: String(request.id),
         requestId: request.id,
-        tariffCode: `${(request.tariff_id !== null ? tariffNameById.get(request.tariff_id) : undefined) ?? ''}${request.id}`,
+        tariffCode: `${(request.tariff_id !== null ? tariffNameById.get(request.tariff_id) : undefined) ?? ''}-${String(request.id).padStart(4, '0')}`,
         tariffName:
             (request.tariff_id !== null
                 ? tariffNameById.get(request.tariff_id)
@@ -456,6 +456,9 @@ export default function ServiceRequestsIndex({
                             <thead className="bg-[#f4f7f5] text-left text-slate-500">
                                 <tr>
                                     <th className="px-4 py-3 font-medium">
+                                        Код
+                                    </th>
+                                    <th className="px-4 py-3 font-medium">
                                         Клиент
                                     </th>
                                     <th className="px-4 py-3 font-medium">
@@ -504,10 +507,10 @@ export default function ServiceRequestsIndex({
                                                 setSelectedId(row.id)
                                             }
                                         >
+                                            <td className="px-4 py-3 font-semibold text-emerald-700">
+                                                {row.tariffCode}
+                                            </td>
                                             <td className="px-4 py-3">
-                                                <div className="text-[11px] font-semibold text-emerald-700">
-                                                    {row.tariffCode}
-                                                </div>
                                                 <div className="font-semibold text-slate-800">
                                                     {row.name}
                                                 </div>
