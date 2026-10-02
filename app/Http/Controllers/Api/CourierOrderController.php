@@ -32,6 +32,17 @@ class CourierOrderController extends Controller
         ]);
     }
 
+    public function discounts(): JsonResponse
+    {
+        Gate::authorize('claim-service-request');
+
+        return response()->json([
+            'data' => Discount::query()
+                ->orderBy('name')
+                ->get(['id', 'name', 'percentage']),
+        ]);
+    }
+
     /**
      * Return the shared feed of unclaimed, non-terminal orders.
      */

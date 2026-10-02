@@ -132,6 +132,22 @@ test('courier can load the tariff options for order acceptance', function () {
         ->assertJsonPath('data.0.price_per_square_meter', 800);
 });
 
+test('couriers can load the available discounts', function () {
+    $courier = createCourierWithLocation();
+    $discount = Discount::query()->create([
+        'name' => 'Скидка',
+        'percentage' => 10,
+    ]);
+
+    Sanctum::actingAs($courier);
+
+    $this->getJson(route('api.courier.discounts.index'))
+        ->assertOk()
+        ->assertJsonPath('data.0.id', $discount->id)
+        ->assertJsonPath('data.0.name', 'Скидка')
+        ->assertJsonPath('data.0.percentage', 10);
+});
+
 test('available orders return the stored carpet count, area and tariff', function () {
     $courier = createCourierWithLocation();
     $tariff = Tariff::query()->create([
