@@ -21,6 +21,7 @@ class CourierOrderResource extends JsonResource
         return [
             'id' => $this->resource->id,
             'address' => $this->resource->address,
+            'client_phone' => $this->resource->client_phone,
             'latitude' => $this->resource->latitude !== null ? (float) $this->resource->latitude : null,
             'longitude' => $this->resource->longitude !== null ? (float) $this->resource->longitude : null,
             'status' => $this->resource->status,

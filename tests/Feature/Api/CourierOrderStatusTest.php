@@ -156,6 +156,21 @@ test('available orders return the stored carpet count, area and tariff', functio
         ->assertJsonPath('data.0.tariff_id', $tariff->id);
 });
 
+test('available orders expose the client phone number for couriers', function () {
+    $courier = createCourierWithLocation();
+    $order = ServiceRequest::factory()->create([
+        'status' => 'new',
+        'courier_id' => null,
+        'client_phone' => '+77001234567',
+    ]);
+
+    Sanctum::actingAs($courier);
+
+    $this->getJson(route('api.courier.orders.available'))
+        ->assertOk()
+        ->assertJsonFragment(['id' => $order->id, 'client_phone' => '+77001234567']);
+});
+
 test('admin can use the mobile order workflow but is not treated as a courier for gps', function () {
     $admin = User::factory()->admin()->create();
     $order = ServiceRequest::factory()->create([
