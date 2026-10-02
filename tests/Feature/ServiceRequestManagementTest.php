@@ -1,5 +1,6 @@
 <?php
 
+use App\Models\Discount;
 use App\Models\ServiceRequest;
 use App\Models\Tariff;
 use App\Models\User;
@@ -117,6 +118,40 @@ test('operators can update service request status', function () {
     expect($serviceRequest->fresh())
         ->status->toBe('in_progress')
         ->courier_id->toBeNull();
+});
+
+test('operators can edit service request carpet details and recalculate the amount', function () {
+    $operator = User::factory()->operator()->create();
+    $discount = Discount::query()->create([
+        'name' => 'Скидка',
+        'percentage' => 10,
+    ]);
+    $serviceRequest = ServiceRequest::factory()->create([
+        'tariff_id' => $this->tariff->id,
+        'area_square_meters' => 8,
+        'carpet_count' => 1,
+        'total_amount' => 6400,
+    ]);
+
+    $response = $this->actingAs($operator)->patch(route('service-requests.update', $serviceRequest), [
+        'client_name' => $serviceRequest->client_name,
+        'phone' => $serviceRequest->client_phone,
+        'address' => $serviceRequest->address,
+        'status' => $serviceRequest->status,
+        'carpet_count' => 3,
+        'area_square_meters' => 12.5,
+        'tariff_id' => $this->tariff->id,
+        'discount_id' => $discount->id,
+        'comment' => 'Обновлённый комментарий',
+    ]);
+
+    $response->assertRedirect(route('service-requests.index'));
+    expect($serviceRequest->fresh())
+        ->carpet_count->toBe(3)
+        ->and((float) $serviceRequest->fresh()->area_square_meters)->toBe(12.5)
+        ->and($serviceRequest->fresh()->discount_id)->toBe($discount->id)
+        ->and($serviceRequest->fresh()->comment)->toBe('Обновлённый комментарий')
+        ->and((float) $serviceRequest->fresh()->total_amount)->toBe(9000.0);
 });
 
 test('marking a washing order ready releases its courier and recalculates the queue', function () {

@@ -54,6 +54,7 @@ class ServiceRequestController extends Controller
                 ->through(fn (ServiceRequest $serviceRequest): array => [
                     'id' => $serviceRequest->id,
                     'tariff_id' => $serviceRequest->tariff_id,
+                    'discount_id' => $serviceRequest->discount_id,
                     'client_name' => $serviceRequest->client_name,
                     'client_phone' => $serviceRequest->client_phone,
                     'address' => $serviceRequest->address,
@@ -150,6 +151,25 @@ class ServiceRequestController extends Controller
         $previousCourierId = $serviceRequest->courier_id;
         $wasAvailable = $previousCourierId === null && in_array($serviceRequest->status, ServiceRequest::AVAILABLE_COURIER_STATUSES, true);
         $data = $request->serviceRequestData();
+        $pricingChanged = array_intersect(['area_square_meters', 'tariff_id', 'discount_id'], array_keys($data)) !== [];
+
+        if ($pricingChanged) {
+            $area = array_key_exists('area_square_meters', $data) ? $data['area_square_meters'] : $serviceRequest->area_square_meters;
+            $tariffId = array_key_exists('tariff_id', $data) ? $data['tariff_id'] : $serviceRequest->tariff_id;
+            $discountId = array_key_exists('discount_id', $data) ? $data['discount_id'] : $serviceRequest->discount_id;
+
+            if ($area !== null && $tariffId !== null) {
+                $tariff = Tariff::query()->findOrFail($tariffId);
+                $discount = $discountId === null ? null : Discount::query()->findOrFail($discountId);
+                $billableArea = max((float) $area, 7.5);
+                $data['total_amount'] = round(
+                    $billableArea * (float) $tariff->price_per_square_meter * (1 - ((float) ($discount?->percentage ?? 0) / 100)),
+                    2,
+                );
+            } else {
+                $data['total_amount'] = null;
+            }
+        }
 
         $addressChanged = $data['address'] !== $serviceRequest->address;
         $coordinatesProvided = array_key_exists('latitude', $data) || array_key_exists('longitude', $data);

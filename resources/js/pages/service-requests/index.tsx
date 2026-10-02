@@ -6,6 +6,7 @@ import {
     ClipboardList,
     MapPin,
     MessageSquareText,
+    Pencil,
     Plus,
     RotateCcw,
     Search,
@@ -90,6 +91,7 @@ type ServiceRequestsProps = {
 type ServiceRequestProp = {
     id: number;
     tariff_id: number | null;
+    discount_id: number | null;
     client_name: string;
     client_phone: string;
     address: string;
@@ -296,6 +298,7 @@ export default function ServiceRequestsIndex({
         comment: request.comment,
     }));
     const [selectedId, setSelectedId] = useState<string | null>(null);
+    const [editingRequest, setEditingRequest] = useState<ServiceRequestProp | null>(null);
     const [isCreateModalOpen, setIsCreateModalOpen] = useState(false);
     const [searchQuery, setSearchQuery] = useState('');
     const [dateFilter, setDateFilter] = useState('all');
@@ -567,6 +570,22 @@ export default function ServiceRequestsIndex({
                                             </td>
                                             <td className="px-4 py-3">
                                                 <div className="flex items-center gap-2">
+                                                    <button
+                                                        type="button"
+                                                        title="Редактировать заявку"
+                                                        aria-label={`Редактировать заявку ${row.id}`}
+                                                        onClick={(event) => {
+                                                            event.stopPropagation();
+                                                            setEditingRequest(
+                                                                serviceRequests.data.find(
+                                                                    (request) => request.id === row.requestId,
+                                                                ) ?? null,
+                                                            );
+                                                        }}
+                                                        className="flex size-8 items-center justify-center rounded-lg border border-[#dfe8e2] bg-white text-slate-500 transition hover:border-emerald-200 hover:bg-emerald-50 hover:text-emerald-700"
+                                                    >
+                                                        <Pencil className="size-4" />
+                                                    </button>
                                                     <Form
                                                         {...ServiceRequestController.update.form(
                                                             row.requestId,
@@ -883,6 +902,108 @@ export default function ServiceRequestsIndex({
                                         </Form>
                                     </div>
                                 </div>
+                            </div>
+                        </div>
+                    )}
+
+                    {editingRequest && (
+                        <div
+                            className="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/20 p-4 backdrop-blur-[1px]"
+                            onClick={(event) => {
+                                if (event.target === event.currentTarget) {
+                                    setEditingRequest(null);
+                                }
+                            }}
+                        >
+                            <div
+                                role="dialog"
+                                aria-modal="true"
+                                aria-labelledby="edit-request-title"
+                                className="max-h-[calc(100vh-2rem)] w-full max-w-2xl overflow-y-auto rounded-xl border border-[#e7ece8] bg-white p-5 shadow-[0_25px_60px_rgba(15,23,42,0.2)] md:p-6"
+                                onClick={(event) => event.stopPropagation()}
+                            >
+                                <div className="mb-5 flex items-center justify-between gap-4">
+                                    <h2 id="edit-request-title" className="text-lg font-bold text-slate-800">
+                                        Редактировать заявку #{editingRequest.id}
+                                    </h2>
+                                    <button
+                                        type="button"
+                                        aria-label="Закрыть редактор"
+                                        onClick={() => setEditingRequest(null)}
+                                        className="flex size-8 shrink-0 items-center justify-center rounded-lg text-slate-400 transition hover:bg-slate-50 hover:text-slate-700"
+                                    >
+                                        <X className="size-4" />
+                                    </button>
+                                </div>
+
+                                <Form
+                                    {...ServiceRequestController.update.form(editingRequest.id)}
+                                    onSuccess={() => setEditingRequest(null)}
+                                    disableWhileProcessing
+                                    className="grid gap-4"
+                                >
+                                    {({ errors, processing }) => (
+                                        <>
+                                            <input type="hidden" name="status" value={editingRequest.status} readOnly />
+                                            <div className="grid gap-4 sm:grid-cols-2">
+                                                <label className="grid gap-1.5 text-sm font-medium text-slate-700">
+                                                    Клиент
+                                                    <input name="client_name" defaultValue={editingRequest.client_name} required className="rounded-lg border border-[#dfe8e2] px-3 py-2 text-sm" />
+                                                    {errors.client_name && <span className="text-xs text-red-600">{errors.client_name}</span>}
+                                                </label>
+                                                <label className="grid gap-1.5 text-sm font-medium text-slate-700">
+                                                    Телефон
+                                                    <input name="phone" defaultValue={editingRequest.client_phone} required className="rounded-lg border border-[#dfe8e2] px-3 py-2 text-sm" />
+                                                    {errors.phone && <span className="text-xs text-red-600">{errors.phone}</span>}
+                                                </label>
+                                                <label className="grid gap-1.5 text-sm font-medium text-slate-700 sm:col-span-2">
+                                                    Адрес
+                                                    <input name="address" defaultValue={editingRequest.address} required className="rounded-lg border border-[#dfe8e2] px-3 py-2 text-sm" />
+                                                    {errors.address && <span className="text-xs text-red-600">{errors.address}</span>}
+                                                </label>
+                                                <label className="grid gap-1.5 text-sm font-medium text-slate-700">
+                                                    Количество ковров
+                                                    <input type="number" name="carpet_count" min="1" step="1" defaultValue={editingRequest.carpet_count ?? ''} className="rounded-lg border border-[#dfe8e2] px-3 py-2 text-sm" />
+                                                    {errors.carpet_count && <span className="text-xs text-red-600">{errors.carpet_count}</span>}
+                                                </label>
+                                                <label className="grid gap-1.5 text-sm font-medium text-slate-700">
+                                                    Площадь, м²
+                                                    <input type="number" name="area_square_meters" min="0.01" step="0.01" defaultValue={editingRequest.area_square_meters ?? ''} className="rounded-lg border border-[#dfe8e2] px-3 py-2 text-sm" />
+                                                    {errors.area_square_meters && <span className="text-xs text-red-600">{errors.area_square_meters}</span>}
+                                                </label>
+                                                <label className="grid gap-1.5 text-sm font-medium text-slate-700">
+                                                    Тариф
+                                                    <select name="tariff_id" defaultValue={editingRequest.tariff_id ?? ''} className="rounded-lg border border-[#dfe8e2] bg-white px-3 py-2 text-sm">
+                                                        <option value="">Без тарифа</option>
+                                                        {tariffs.map((tariff) => <option key={tariff.id} value={tariff.id}>{tariff.name} · {Number(tariff.price_per_square_meter).toLocaleString('ru-RU')} ₸/м²</option>)}
+                                                    </select>
+                                                    {errors.tariff_id && <span className="text-xs text-red-600">{errors.tariff_id}</span>}
+                                                </label>
+                                                <label className="grid gap-1.5 text-sm font-medium text-slate-700">
+                                                    Скидка
+                                                    <select name="discount_id" defaultValue={editingRequest.discount_id ?? ''} className="rounded-lg border border-[#dfe8e2] bg-white px-3 py-2 text-sm">
+                                                        <option value="">Без скидки</option>
+                                                        {discounts.map((discount) => <option key={discount.id} value={discount.id}>{discount.name} · {discount.percentage}%</option>)}
+                                                    </select>
+                                                    {errors.discount_id && <span className="text-xs text-red-600">{errors.discount_id}</span>}
+                                                </label>
+                                                <label className="grid gap-1.5 text-sm font-medium text-slate-700 sm:col-span-2">
+                                                    Комментарий
+                                                    <textarea name="comment" defaultValue={editingRequest.comment ?? ''} rows={3} className="resize-y rounded-lg border border-[#dfe8e2] px-3 py-2 text-sm" />
+                                                    {errors.comment && <span className="text-xs text-red-600">{errors.comment}</span>}
+                                                </label>
+                                            </div>
+                                            <div className="flex justify-end gap-2 border-t border-[#edf1ee] pt-4">
+                                                <button type="button" onClick={() => setEditingRequest(null)} className="rounded-lg border border-[#dfe8e2] px-3 py-2 text-sm font-medium text-slate-600 hover:bg-slate-50">
+                                                    Отмена
+                                                </button>
+                                                <button type="submit" disabled={processing} className="rounded-lg bg-[#0d7c6a] px-4 py-2 text-sm font-semibold text-white transition hover:bg-[#0a6a5a] disabled:opacity-60">
+                                                    {processing ? 'Сохранение...' : 'Сохранить'}
+                                                </button>
+                                            </div>
+                                        </>
+                                    )}
+                                </Form>
                             </div>
                         </div>
                     )}
