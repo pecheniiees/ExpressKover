@@ -944,7 +944,6 @@ export default function ServiceRequestsIndex({
                                 >
                                     {({ errors, processing }) => (
                                         <>
-                                            <input type="hidden" name="status" value={editingRequest.status} readOnly />
                                             <div className="grid gap-4 sm:grid-cols-2">
                                                 <label className="grid gap-1.5 text-sm font-medium text-slate-700">
                                                     Клиент
@@ -960,6 +959,13 @@ export default function ServiceRequestsIndex({
                                                     Адрес
                                                     <input name="address" defaultValue={editingRequest.address} required className="rounded-lg border border-[#dfe8e2] px-3 py-2 text-sm" />
                                                     {errors.address && <span className="text-xs text-red-600">{errors.address}</span>}
+                                                </label>
+                                                <label className="grid gap-1.5 text-sm font-medium text-slate-700">
+                                                    Статус
+                                                    <select name="status" defaultValue={editingRequest.status} className="rounded-lg border border-[#dfe8e2] bg-white px-3 py-2 text-sm">
+                                                        {Object.entries(statusLabels).map(([value, label]) => <option key={value} value={value}>{label}</option>)}
+                                                    </select>
+                                                    {errors.status && <span className="text-xs text-red-600">{errors.status}</span>}
                                                 </label>
                                                 <label className="grid gap-1.5 text-sm font-medium text-slate-700">
                                                     Количество ковров
