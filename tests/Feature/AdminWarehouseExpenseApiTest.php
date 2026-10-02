@@ -58,6 +58,40 @@ test('courier cannot access warehouse expense API', function () {
     $this->getJson(route('api.admin.warehouse.expenses.index'))
         ->assertForbidden();
 });
+
+test('courier can record a warehouse expense through the mobile API', function () {
+    $courier = User::factory()->courier()->create();
+    Sanctum::actingAs($courier);
+
+    $this->postJson(route('api.courier.warehouse.expenses.store'), [
+        'category' => 'fuel',
+        'amount' => 18500,
+        'expense_date' => now()->toDateString(),
+        'description' => 'Заправка автомобиля',
+    ])
+        ->assertCreated()
+        ->assertJsonPath('data.category', 'fuel')
+        ->assertJsonPath('data.amount', 18500);
+
+    $this->assertDatabaseHas('warehouse_expenses', [
+        'category' => 'fuel',
+        'amount' => 18500,
+        'created_by' => $courier->id,
+    ]);
+});
+
+test('operator cannot record a warehouse expense through the courier API', function () {
+    Sanctum::actingAs(User::factory()->operator()->create());
+
+    $this->postJson(route('api.courier.warehouse.expenses.store'), [
+        'category' => 'fuel',
+        'amount' => 18500,
+        'expense_date' => now()->toDateString(),
+    ])->assertForbidden();
+
+    $this->assertDatabaseCount('warehouse_expenses', 0);
+});
+
 test('example', function () {
     $response = $this->get('/');
 

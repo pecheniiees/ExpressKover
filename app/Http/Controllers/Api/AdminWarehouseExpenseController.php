@@ -3,7 +3,7 @@
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Http\Requests\StoreWarehouseExpenseRequest;
+use App\Http\Requests\Api\StoreWarehouseExpenseRequest;
 use App\Http\Requests\UpdateWarehouseExpenseRequest;
 use App\Http\Resources\WarehouseExpenseResource;
 use App\Models\WarehouseExpense;
