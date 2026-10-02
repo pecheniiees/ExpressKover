@@ -20,6 +20,7 @@ class CourierOrderResource extends JsonResource
     {
         return [
             'id' => $this->resource->id,
+            'client_name' => $this->resource->client_name,
             'address' => $this->resource->address,
             'client_phone' => $this->resource->client_phone,
             'latitude' => $this->resource->latitude !== null ? (float) $this->resource->latitude : null,
@@ -28,6 +29,8 @@ class CourierOrderResource extends JsonResource
             'carpet_count' => $this->resource->carpet_count,
             'area_square_meters' => $this->resource->area_square_meters !== null ? (float) $this->resource->area_square_meters : null,
             'tariff_id' => $this->resource->tariff_id,
+            'discount_id' => $this->resource->discount_id,
+            'comment' => $this->resource->comment,
             'total_amount' => $this->resource->total_amount !== null ? (float) $this->resource->total_amount : null,
             'queue_position' => $this->resource->queue_position,
             'distance_meters' => $this->resource->distance_meters !== null ? (int) round($this->resource->distance_meters) : null,

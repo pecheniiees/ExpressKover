@@ -6,9 +6,12 @@ use App\Http\Controllers\Api\AuthTokenController;
 use App\Http\Controllers\Api\CourierLocationController;
 use App\Http\Controllers\Api\CourierOrderController;
 use App\Http\Controllers\Api\CourierPushTokenController;
+use App\Http\Controllers\Api\ServiceRequestDetailsController;
 use Illuminate\Support\Facades\Route;
 
 Route::post('login', [AuthTokenController::class, 'store'])->name('api.login');
+
+Route::middleware('auth:sanctum')->patch('orders/{order}/details', [ServiceRequestDetailsController::class, 'update'])->name('api.orders.details.update');
 
 Route::middleware('auth:sanctum')->prefix('courier')->name('api.courier.')->group(function () {
     Route::post('location', [CourierLocationController::class, 'store'])->name('location.store');

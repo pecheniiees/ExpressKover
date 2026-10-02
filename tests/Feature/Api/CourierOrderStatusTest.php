@@ -187,6 +187,59 @@ test('available orders expose the client phone number for couriers', function ()
         ->assertJsonFragment(['id' => $order->id, 'client_phone' => '+77001234567']);
 });
 
+test('admins and couriers can edit order details regardless of order status', function () {
+    $tariff = Tariff::query()->create([
+        'name' => 'Обновлённый тариф',
+        'price_per_square_meter' => 1000,
+    ]);
+    $discount = Discount::query()->create([
+        'name' => 'Скидка',
+        'percentage' => 10,
+    ]);
+
+    foreach (['admin', 'courier'] as $role) {
+        $user = $role === 'admin'
+            ? User::factory()->admin()->create()
+            : createCourierWithLocation();
+
+        foreach (['new', 'pending', 'assigned', 'accepted', 'in_progress', 'ready', 'delivery', 'completed', 'delivered', 'cancelled'] as $status) {
+            $order = ServiceRequest::factory()->create([
+                'status' => $status,
+                'courier_id' => $role === 'courier' ? $user->id : null,
+                'area_square_meters' => 8,
+                'carpet_count' => 1,
+            ]);
+            Sanctum::actingAs($user);
+
+            $this->patchJson(route('api.orders.details.update', $order), [
+                'client_name' => 'Обновлённый клиент',
+                'client_phone' => '+77001234567',
+                'address' => $order->address,
+                'carpet_count' => 3,
+                'area_square_meters' => 12,
+                'tariff_id' => $tariff->id,
+                'discount_id' => $discount->id,
+                'comment' => 'Обновлённый комментарий',
+            ])->assertOk()->assertJson(['updated' => true]);
+
+            expect($order->fresh())
+                ->client_name->toBe('Обновлённый клиент')
+                ->client_phone->toBe('+77001234567')
+                ->carpet_count->toBe(3)
+                ->status->toBe($status)
+                ->total_amount->toBe('10800.00');
+        }
+    }
+});
+
+test('operators cannot edit order details through the mobile api', function () {
+    Sanctum::actingAs(User::factory()->operator()->create());
+
+    $this->patchJson(route('api.orders.details.update', ServiceRequest::factory()->create()), [
+        'client_name' => 'Unauthorized edit',
+    ])->assertForbidden();
+});
+
 test('admin can use the mobile order workflow but is not treated as a courier for gps', function () {
     $admin = User::factory()->admin()->create();
     $order = ServiceRequest::factory()->create([
